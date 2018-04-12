@@ -1,80 +1,65 @@
-/* 
- * File:   main.cpp
- * Author: albert.carreira
- *
- * Created on April 12, 2018, 3:41 PM
- */
-
-#include <iostream>
 #include <fstream>
-#include <vector>
+#include <iostream>
+#include <random>
 #include <stdlib.h> 
-#include <sstream>
+#include <string>
+#include <vector>
+
 using namespace std;
 
-void generador(int n){
-  ofstream archivo1;
-  archivo1.open ("archivo1");
-  
-  // Generamos los números aleatorios
-  int seed = 1234;
-  
-  /* Numeros hasta 10 cifras
-  long long int tamanoMax = 1000000000000000;
-  srand(seed);
-  for (int i = 0; i < n; ++i){
-        long long int number = rand()%tamanoMax;
-        o << number;
-        archivo1 << o.str();
-        archivo1 << endl;
-        o.clear();
-        o.str("");
-  }*/
-  long long int tamanoMax = 100000000000000000000;
-  srand(seed);
-  for (int i = 0; i < n; ++i){
-        ostringstream o;
-        long long int number1 = rand();
-        long long int number2 = rand();
-        long long int number = (number1 * number2)%tamanoMax;
-        o << number;
-        archivo1 << o.str();
-        archivo1 << endl;
-        o.clear();
-        o.str("");
-  }
-  
-  
-  archivo1.close();
+typedef unsigned long long int u2long;
+
+// Genera n nombres aleatoris amb llavor seed i els desa al arxiu especificat per filename
+void generador(string filename, int n, int seed) {
+	ofstream fs(filename);
+	u2long tamanoMax = 10000000000000000000;
+	std::default_random_engine generator(seed);
+	std::uniform_int_distribution<u2long> distribution(0, tamanoMax-1);
+
+	if (!fs.is_open()) {
+		cerr << "No se pudo abrir el archivo: " + filename << endl;
+		return;
+	}
+	// Generamos los números aleatorios
+	for (int i = 0; i < n; ++i) { 
+		u2long rand = distribution(generator);
+		fs << to_string(rand);
+		fs << endl;
+	}
+
+	fs.close();
 }
 
-void reader(int n){
-    ifstream archivo1 ("archivo1", ifstream::in);
-    vector<string> listaNumeros = vector<string>(n); //Pasar los numeros a int?
-    int i = 0;
-    
-    if (archivo1.is_open()){
-        string numero;
-        while(getline(archivo1, numero)){
-            listaNumeros[i] = numero;
-            cout << numero << endl;
-        }
-        archivo1.close();
-    }
-    else cout << "No se pudo abrir el archivo: archivo1" << endl; 
-    
-    
-    
+// Llegeix els nombres de l'arxiu filename i els desa en listNum
+void reader(string filename, vector<u2long>& listNum) {
+	ifstream fs(filename);
+	string num;
+
+	if (!fs.is_open()) {
+		cerr << "No se pudo abrir el archivo: " + filename << endl;
+		return;
+	}
+
+	while (getline(fs, num))
+		listNum.push_back(stoll(num));
+
+	fs.close();
 }
 
 
 int main(int argc, char** argv) {
-    
-    int n = 10;
-    generador(n);
-    reader(n);
+	int n = 10;
+	int seed = 1234;
+	string filename = "archivo1.txt";
+	vector<u2long> listNum = vector<u2long>();
 
-    
-    return 0;
+	generador(filename, n, seed);
+	reader(filename, listNum);
+
+	for (int i : listNum)
+		cout << i << endl;
+
+	cin.ignore();
+	return 0;
 }
 
