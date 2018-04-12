@@ -1,12 +1,12 @@
 #include <fstream>
 #include <iostream>
 #include <random>
-#include <stdlib.h> 
 #include <string>
 #include <vector>
 
 using namespace std;
 
+// Tipus dels nombres a utilitzar (unsigned de 64bit)
 typedef unsigned long long int u2long;
 
 // Genera n nombres aleatoris amb llavor seed i els desa al arxiu especificat per filename
