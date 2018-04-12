@@ -1,50 +1,47 @@
 /* 
- * File:   main.cpp
- * Author: albert.carreira
- *
- * Created on April 12, 2018, 3:41 PM
- */
+* File:   main.cpp
+* Author: albert.carreira
+*
+* Created on April 12, 2018, 3:41 PM
+*/
 
-#include <iostream>
 #include <fstream>
-#include <sstream>
+#include <iostream>
+#include <string>
 #include <vector>
 using namespace std;
 
 void generador(int n){
-  ofstream archivo1;
-  archivo1.open ("archivo1");
-  for (int i = 1; i <= n; ++i){
-      ostringstream o;
-      o << i;
-      archivo1 << o.str();
-      archivo1 << endl;
-  }
+	ofstream fs;
+	fs.open ("archivo1.txt");
+	for (int i = 1; i <= n; ++i){
+		fs << to_string(i);
+		fs << endl;
+	}
 
-  archivo1.close();
+	fs.close();
 }
 
-void reader(string file){
-    ifstream archivo1 (file);
-    if (archivo1.is_open()){
-        string numero;
-        while(getline(archivo1, numero)){
-            cout << numero << endl;
-        }
-        archivo1.close();
-    }
-    else cout << "No se pudo abrir el archivo: " + file << endl; 
+void reader(string filename){
+	ifstream fs(filename);
+	if (fs.is_open()){
+		string numero;
+		while(getline(fs, numero)){
+			cout << numero << endl;
+		}
+		fs.close();
+	}
+	else cout << "No se pudo abrir el archivo: " + filename << endl;
     
     
-    vector<int> listaNumeros = vector<int>();
+	vector<int> listaNumeros = vector<int>();
 }
 
 
 int main(int argc, char** argv) {
     
-    generador(123);
+	generador(123);
     
     
-    return 0;
+	return 0;
 }
-
