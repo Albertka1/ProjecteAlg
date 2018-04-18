@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
 	generate(file_test2, n*10, time(NULL)/7);
 
 	dicc = diccionari::factory(1, file_dicc);
+	if (dicc == NULL) return -1;
 	
 	read(file_test1, listNum);
 	for (paraula i : listNum) {
@@ -36,8 +37,7 @@ int main(int argc, char** argv) {
 		cout << (dicc->exists(i) ? "FOUND" : "NOT FOUND") << endl;
 	}
 
-	if (dicc != NULL)
-		delete dicc;
+	delete dicc;
 
 	cin.ignore();
 	return 0;

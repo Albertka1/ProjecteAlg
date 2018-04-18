@@ -14,8 +14,7 @@ namespace diccionari {
 		std::ifstream fs(filename);
 		std::string num;
 
-		if (!fs.is_open())
-			return -1;
+		if (!fs.is_open()) return -1;
 
 		while (getline(fs, num))
 			listNum.push_back(std::stoull(num));
@@ -31,8 +30,7 @@ namespace diccionari {
 		std::default_random_engine generator(seed);
 		std::uniform_int_distribution<paraula> distribution(0, tamanoMax - 1);
 
-		if (!fs.is_open())
-			return -1;
+		if (!fs.is_open()) return -1;
 
 		// Generamos los números aleatorios
 		for (int i = 0; i < size; ++i) {
