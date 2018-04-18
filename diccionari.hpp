@@ -8,9 +8,9 @@
 
 namespace diccionari {
 	// Tipus dels nombres a utilitzar (unsigned de 64bit)
-	typedef unsigned long long int paraula;
+	typedef unsigned long long paraula;
 
-	int read(std::string filename, std::vector<paraula> listNum) {
+	int read(const std::string& filename, std::vector<paraula>& listNum) {
 		std::ifstream fs(filename);
 		std::string num;
 
@@ -18,12 +18,14 @@ namespace diccionari {
 			return -1;
 
 		while (getline(fs, num))
-			listNum.push_back(stoll(num));
+			listNum.push_back(std::stoull(num));
 
 		fs.close();
+
+		return 0;
 	}
 
-	int generate(std::string filename, int size, int seed) {
+	int generate(const std::string& filename, int size, int seed) {
 		std::ofstream fs(filename);
 		paraula tamanoMax = 10000000000000000000;
 		std::default_random_engine generator(seed);
@@ -40,6 +42,8 @@ namespace diccionari {
 		}
 
 		fs.close();
+
+		return 0;
 	}
 
 	class Diccionari {
@@ -47,13 +51,38 @@ namespace diccionari {
 		std::vector<paraula> pars;
 
 	public:
-		Diccionari(std::string filename) {
+		Diccionari(const std::string& filename) {
+			pars = std::vector<paraula>(0);
 			int i = read(filename, pars);
 			if (i == -1) throw;
 		}
 
 		virtual bool exists(paraula p) = 0;
 	};
+
+	class SequentialSearch : public Diccionari {
+	public:
+		SequentialSearch(const std::string& filename) : Diccionari(filename) {}
+
+		bool exists(paraula a) {
+			for (paraula b : pars)
+				if (a == b) return true;
+			return false;
+		}
+	};
+
+	Diccionari* factory(int type, const std::string& filename) {
+		Diccionari* d;
+		switch (type) {
+		case 1:
+			d = new SequentialSearch(filename);
+			break;
+		default:
+			d = NULL;
+		}
+
+		return d;
+	}
 }
 
 #endif
