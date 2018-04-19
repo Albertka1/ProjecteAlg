@@ -11,27 +11,26 @@
 #include "paraula.hpp"
 
 namespace diccionari {
-	static int read(const std::string& filename, std::vector<paraula>& listNum) {
-			std::ifstream fs(filename);
-			std::string num;
+	int llegeix(const std::string& filename, std::vector<paraula>& listNum) {
+		std::ifstream fs(filename);
+		std::string num;
 
-			if (!fs.is_open()) return -1;
+		if (!fs.is_open()) return -1;
 
-			while (getline(fs, num))
-				listNum.push_back(std::stoull(num));
+		while (getline(fs, num))
+			listNum.push_back(std::stoull(num));
 
-			fs.close();
-
-			return 0;
-		}
+		fs.close();
+		return 0;
+	}
 
 	class Diccionari {
 	protected:
 		Diccionari() {}
 		template<class cont>
-		void init(cont& c, std::string filename) {
+		void init(cont& c, const std::string& filename) {
 			std::vector<paraula> pars(0);
-			int i = read(filename, pars);
+			int i = llegeix(filename, pars);
 			if (i == -1) throw;
 			std::copy(pars.begin(), pars.end(), inserter(c, c.begin()));
 		}
@@ -42,7 +41,7 @@ namespace diccionari {
 			return s;
 		}
 	public:
-		virtual bool exists(paraula p) = 0;
+		virtual bool existeix(paraula p) = 0;
 		virtual operator std::string() = 0;
 	};
 
@@ -50,11 +49,11 @@ namespace diccionari {
 	private:
 		std::vector<paraula> pars;
 	public:
-		SequentialSearch(std::string filename) : Diccionari() {
+		SequentialSearch(const std::string& filename) : Diccionari() {
 			pars = std::vector<paraula>(0);
 			init(pars, filename);
 		}
-		bool exists(paraula p) {
+		bool existeix(paraula p) {
 			for (paraula f : pars) if (f == p) return true;
 			return false;
 		}
@@ -65,8 +64,8 @@ namespace diccionari {
 	private:
 		std::set<paraula> pars;
 	public:
-		SetFind(std::string filename) : Diccionari() { init(pars, filename); }
-		bool exists(paraula p) { return (pars.find(p) != pars.end()); }
+		SetFind(const std::string& filename) : Diccionari() { init(pars, filename); }
+		bool existeix(paraula p) { return (pars.find(p) != pars.end()); }
 		operator std::string() { return toString(pars); }
 	};
 
@@ -74,8 +73,8 @@ namespace diccionari {
 	private:
 		std::unordered_set<paraula> pars;
 	public:
-		USetFind(std::string filename) : Diccionari() { init(pars, filename); }
-		bool exists(paraula p) { return (pars.find(p) != pars.end()); }
+		USetFind(const std::string& filename) : Diccionari() { init(pars, filename); }
+		bool existeix(paraula p) { return (pars.find(p) != pars.end()); }
 		operator std::string() { return toString(pars); }
 	};
 

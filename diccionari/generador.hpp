@@ -9,31 +9,31 @@
 #include "paraula.hpp"
 
 namespace diccionari {
+	paraula tamanyMax = 10000000000000000000;
+
 	struct {
 	private:
-		paraula tamanoMax = 10000000000000000000;
-		std::uniform_int_distribution<paraula> dist = std::uniform_int_distribution<paraula>(0, tamanoMax - 1);
+		std::uniform_int_distribution<paraula> dist = std::uniform_int_distribution<paraula>(0, tamanyMax - 1);
 		std::default_random_engine gen = std::default_random_engine();
 
 	public:
-		void seed(paraula p) { gen.seed(p); }
-		paraula next() { return dist(gen); }
-	} randomEngine;
+		void llavor(paraula p) { gen.seed(p); }
+		paraula genera() { return dist(gen); }
+	} motorAleatori;
 
-	int generate(const std::string& filename, int size) {
+	int genera_diccionari(const std::string& filename, int size) {
 		std::ofstream fs(filename);
 
 		if (!fs.is_open()) return -1;
 
-		// Generamos los números aleatorios
+		// Generem les paraules del diccionari aleatoriament
 		for (int i = 0; i < size; ++i) {
-			paraula rand = randomEngine.next();
-			fs << std::to_string(rand);
+			paraula aleatoria = motorAleatori.genera();
+			fs << std::to_string(aleatoria);
 			fs << std::endl;
 		}
 
 		fs.close();
-
 		return 0;
 	}
 
