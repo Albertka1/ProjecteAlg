@@ -16,9 +16,10 @@ int main(int argc, char** argv) {
 	vector<paraula> listNum = vector<paraula>();
 	Diccionari* dicc;
 
-	generate(file_dicc, n, time(NULL)/3);
-	generate(file_test1, n*10, time(NULL)/5);
-	generate(file_test2, n*10, time(NULL)/7);
+	randomEngine.seed(time(NULL));
+	generate(file_dicc, n);
+	generate(file_test1, n*10);
+	generate(file_test2, n*10);
 
 	dicc = diccionari::factory(1, file_dicc);
 	if (dicc == NULL) return -1;

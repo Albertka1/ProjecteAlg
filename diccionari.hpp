@@ -2,13 +2,27 @@
 #define diccionari_hpp
 
 #include <fstream>
+#include <iterator>
 #include <random>
+#include <set>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 namespace diccionari {
 	// Tipus dels nombres a utilitzar (unsigned de 64bit)
 	typedef unsigned long long paraula;
+	
+	struct {
+	private:
+		paraula tamanoMax = 10000000000000000000;
+		std::uniform_int_distribution<paraula> dist = std::uniform_int_distribution<paraula>(0, tamanoMax - 1);
+		std::default_random_engine gen = std::default_random_engine();
+
+	public:
+		void seed(paraula p) { gen.seed(p); }
+		paraula next() { return dist(gen); }
+	} randomEngine;
 
 	int read(const std::string& filename, std::vector<paraula>& listNum) {
 		std::ifstream fs(filename);
@@ -24,17 +38,14 @@ namespace diccionari {
 		return 0;
 	}
 
-	int generate(const std::string& filename, int size, int seed) {
+	int generate(const std::string& filename, int size) {
 		std::ofstream fs(filename);
-		paraula tamanoMax = 10000000000000000000;
-		std::default_random_engine generator(seed);
-		std::uniform_int_distribution<paraula> distribution(0, tamanoMax - 1);
 
 		if (!fs.is_open()) return -1;
 
 		// Generamos los números aleatorios
 		for (int i = 0; i < size; ++i) {
-			paraula rand = distribution(generator);
+			paraula rand = randomEngine.next();
 			fs << std::to_string(rand);
 			fs << std::endl;
 		}
@@ -46,34 +57,66 @@ namespace diccionari {
 
 	class Diccionari {
 	protected:
-		std::vector<paraula> pars;
-
-	public:
-		Diccionari(const std::string& filename) {
-			pars = std::vector<paraula>(0);
+		Diccionari() {}
+		template<class cont>
+		void init(cont& c, std::string filename) {
+			std::vector<paraula> pars(0);
 			int i = read(filename, pars);
 			if (i == -1) throw;
+			std::copy(pars.begin(), pars.end(), inserter(c, c.begin()));
 		}
-
+		template<class cont>
+		std::string toString(const cont& c) {
+			std::string s = "";
+			for (paraula p : c) s += std::to_string(p) + '\n';
+			return s;
+		}
+	public:
 		virtual bool exists(paraula p) = 0;
+		virtual operator std::string() = 0;
 	};
 
 	class SequentialSearch : public Diccionari {
+	private:
+		std::vector<paraula> pars;
 	public:
-		SequentialSearch(const std::string& filename) : Diccionari(filename) {}
-
-		bool exists(paraula a) {
-			for (paraula b : pars)
-				if (a == b) return true;
+		SequentialSearch(std::string filename) : Diccionari() {
+			pars = std::vector<paraula>(0);
+			init(pars, filename);
+		}
+		bool exists(paraula p) {
+			for (paraula f : pars) if (f == p) return true;
 			return false;
 		}
+		operator std::string() { return toString(pars); }
+	};
+
+	class SetFind : public Diccionari {
+	private:
+		std::set<paraula> pars;
+	public:
+		SetFind(std::string filename) : Diccionari() { init(pars, filename); }
+		bool exists(paraula p) { return (pars.find(p) != pars.end()); }
+		operator std::string() { return toString(pars); }
+	};
+
+	class USetFind : public Diccionari {
+	private:
+		std::unordered_set<paraula> pars;
+	public:
+		USetFind(std::string filename) : Diccionari() { init(pars, filename); }
+		bool exists(paraula p) { return (pars.find(p) != pars.end()); }
+		operator std::string() { return toString(pars); }
 	};
 
 	Diccionari* factory(int type, const std::string& filename) {
 		Diccionari* d;
 		switch (type) {
-		case 1:
-			d = new SequentialSearch(filename);
+		case 1: d = new SequentialSearch(filename);
+			break;
+		case 2: d = new SetFind(filename);
+			break;
+		case 3: d = new USetFind(filename);
 			break;
 		default:
 			d = NULL;
