@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "diccionari.hpp"
+#include "generador.hpp"
 
 using namespace std;
 using namespace diccionari;
@@ -25,22 +26,20 @@ int main(int argc, char** argv) {
 	if (dicc == NULL) return -1;
 	
 	read(file_test1, listNum);
-	for (paraula i : listNum) {
-		cout << i << " ";
-		cout << (dicc->exists(i) ? "FOUND" : "NOT FOUND") << endl;
-	}
+	for (paraula i : listNum)
+		cout << i << " " << (dicc->exists(i) ? "FOUND" : "NOT FOUND") << endl;
 
 	cout << endl;
 
 	read(file_test2, listNum);
-	for (paraula i : listNum) {
-		cout << i << " ";
-		cout << (dicc->exists(i) ? "FOUND" : "NOT FOUND") << endl;
-	}
+	for (paraula i : listNum)
+		cout << i << " " << (dicc->exists(i) ? "FOUND" : "NOT FOUND") << endl;
+
+#ifdef _MSC_VER
+	cin.ignore();
+#endif
 
 	delete dicc;
-
-	cin.ignore();
 	return 0;
 }
 

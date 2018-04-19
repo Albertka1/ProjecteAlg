@@ -3,57 +3,27 @@
 
 #include <fstream>
 #include <iterator>
-#include <random>
 #include <set>
 #include <string>
 #include <vector>
 #include <unordered_set>
 
+#include "paraula.hpp"
+
 namespace diccionari {
-	// Tipus dels nombres a utilitzar (unsigned de 64bit)
-	typedef unsigned long long paraula;
-	
-	struct {
-	private:
-		paraula tamanoMax = 10000000000000000000;
-		std::uniform_int_distribution<paraula> dist = std::uniform_int_distribution<paraula>(0, tamanoMax - 1);
-		std::default_random_engine gen = std::default_random_engine();
+	static int read(const std::string& filename, std::vector<paraula>& listNum) {
+			std::ifstream fs(filename);
+			std::string num;
 
-	public:
-		void seed(paraula p) { gen.seed(p); }
-		paraula next() { return dist(gen); }
-	} randomEngine;
+			if (!fs.is_open()) return -1;
 
-	int read(const std::string& filename, std::vector<paraula>& listNum) {
-		std::ifstream fs(filename);
-		std::string num;
+			while (getline(fs, num))
+				listNum.push_back(std::stoull(num));
 
-		if (!fs.is_open()) return -1;
+			fs.close();
 
-		while (getline(fs, num))
-			listNum.push_back(std::stoull(num));
-
-		fs.close();
-
-		return 0;
-	}
-
-	int generate(const std::string& filename, int size) {
-		std::ofstream fs(filename);
-
-		if (!fs.is_open()) return -1;
-
-		// Generamos los números aleatorios
-		for (int i = 0; i < size; ++i) {
-			paraula rand = randomEngine.next();
-			fs << std::to_string(rand);
-			fs << std::endl;
+			return 0;
 		}
-
-		fs.close();
-
-		return 0;
-	}
 
 	class Diccionari {
 	protected:
