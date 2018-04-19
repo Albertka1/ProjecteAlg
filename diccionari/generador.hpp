@@ -25,7 +25,7 @@ namespace diccionari {
 
 		if (!fs.is_open()) return -1;
 
-		// Generamos los números aleatorios
+		// Generamos los nÃºmeros aleatorios
 		for (int i = 0; i < size; ++i) {
 			paraula rand = randomEngine.next();
 			fs << std::to_string(rand);
