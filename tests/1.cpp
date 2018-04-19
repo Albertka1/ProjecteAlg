@@ -11,27 +11,19 @@ using namespace diccionari;
 
 int main(int argc, char** argv) {
 	int n = 10;
-	string file_dicc  = "dicc.txt";
-	string file_test1 = "test1.txt";
-	string file_test2 = "test2.txt";
+	string file_dicc = "1_dicc.txt";
+	string file_test = "1_test.txt";
 	vector<paraula> nombres = vector<paraula>();
 	Diccionari* dicc;
 
 	motorAleatori.llavor(time(NULL));
 	genera_diccionari(file_dicc, n);
-	genera_diccionari(file_test1, n*10);
-	genera_diccionari(file_test2, n*10);
+	genera_diccionari(file_test, n*10);
 
 	dicc = diccionari::factory(1, file_dicc);
 	if (dicc == NULL) return -1;
 	
-	llegeix(file_test1, nombres);
-	for (paraula i : nombres)
-		cout << i << " " << (dicc->existeix(i) ? "FOUND" : "NOT FOUND") << endl;
-
-	cout << endl;
-
-	llegeix(file_test2, nombres);
+	llegeix(file_test, nombres);
 	for (paraula i : nombres)
 		cout << i << " " << (dicc->existeix(i) ? "FOUND" : "NOT FOUND") << endl;
 
