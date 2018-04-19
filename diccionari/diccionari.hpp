@@ -10,6 +10,8 @@
 
 #include "paraula.hpp"
 
+#define macro_stringCast operator std::string() { return toString(pars); }
+
 namespace diccionari {
 	int llegeix(const std::string& filename, std::vector<paraula>& listNum) {
 		std::ifstream fs(filename);
@@ -41,8 +43,15 @@ namespace diccionari {
 			return s;
 		}
 	public:
-		virtual bool existeix(paraula p) = 0;
 		virtual operator std::string() = 0;
+		virtual bool optimitza_lot() { return false; }
+
+		virtual bool existeix(paraula p) = 0;
+		virtual std::vector<bool> existeix_lot(const std::vector<paraula>& lot) {
+			std::vector<bool> res(0);
+			for (paraula p : lot) res.push_back(existeix(p));
+			return res;
+		}
 	};
 
 	class SequentialSearch : public Diccionari {
@@ -53,11 +62,12 @@ namespace diccionari {
 			pars = std::vector<paraula>(0);
 			init(pars, filename);
 		}
+
+		macro_stringCast
 		bool existeix(paraula p) {
 			for (paraula f : pars) if (f == p) return true;
 			return false;
 		}
-		operator std::string() { return toString(pars); }
 	};
 
 	class SetFind : public Diccionari {
@@ -65,8 +75,9 @@ namespace diccionari {
 		std::set<paraula> pars;
 	public:
 		SetFind(const std::string& filename) : Diccionari() { init(pars, filename); }
+
+		macro_stringCast
 		bool existeix(paraula p) { return (pars.find(p) != pars.end()); }
-		operator std::string() { return toString(pars); }
 	};
 
 	class USetFind : public Diccionari {
@@ -74,8 +85,9 @@ namespace diccionari {
 		std::unordered_set<paraula> pars;
 	public:
 		USetFind(const std::string& filename) : Diccionari() { init(pars, filename); }
+
+		macro_stringCast
 		bool existeix(paraula p) { return (pars.find(p) != pars.end()); }
-		operator std::string() { return toString(pars); }
 	};
 
 	Diccionari* factory(int type, const std::string& filename) {
