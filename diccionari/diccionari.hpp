@@ -38,7 +38,7 @@ namespace diccionari {
 			std::vector<paraula> pars(0);
 			int i = llegeix(filename, pars);
 			if (i == -1) throw;
-			std::copy(pars.begin(), pars.end(), inserter(c, c.begin()));
+			std::copy(pars.begin(), pars.end(), std::inserter(c, c.begin()));
 		}
 		template<class cont>
 		std::string toString(const cont& c) const {
@@ -83,15 +83,20 @@ namespace diccionari {
 		bool optimitza_lot() const { return false; } // Passar a true quan i_existeix_lot implementada
 
 		bool existeix(paraula p) const { return (pars.find(p) != pars.end()); }
-
-		typedef std::set<paraula>::const_iterator sp_cit;
-		void i_existeix_lot(const std::vector<paraula>& lot, sp_cit ini_pars, sp_cit fi_pars,
-			int ini_lot, int fi_lot, std::vector<bool> res) const {
-			if (ini_lot == fi_lot);
-		}
 		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
+			std::vector<paraula> falten(0);
 			std::vector<bool> res(lot.size());
-			i_existeix_lot(lot, pars.cbegin(), pars.cend(), 0, lot.size() - 1, res);
+
+			std::set_difference(lot.cbegin(), lot.cend(), pars.cbegin(), pars.cend(), std::inserter(falten, falten.begin()));
+			for (int i = 0, j = 0; i < lot.size() && j < falten.size(); ++i) {
+				if (lot[i] == falten[j]) {
+					++j;
+					res[i] = false;
+				}
+				else
+					res[i] = true;
+			}
+
 			return res;
 		}
 	};
