@@ -1,7 +1,9 @@
 #include <algorithm>
+#include <chrono>
+#include <ctime>
+#include <functional>
 #include <iostream>
 #include <string>
-#include <ctime>
 #include <vector>
 
 #include "diccionari.hpp"
@@ -10,7 +12,51 @@
 using namespace std;
 using namespace diccionari;
 
+typedef chrono::duration<double, milli> span_s;
+typedef chrono::high_resolution_clock hr_clock;
+
 namespace tests {
+	template <class R, class ... Args>
+	class cronometre {
+	private:
+		function<R(Args ...)> f;
+		double t;
+	public:
+		cronometre(function<R(Args ...)> func) { t = 0; f = func; }
+		R operator()(Args ... args) {
+			hr_clock::time_point ini, fi;
+			R result;
+
+			ini = hr_clock::now();
+			result = f(args ...);
+			fi  = hr_clock::now();
+
+			t = span_s(chrono::duration_cast<span_s>(fi - ini)).count();
+
+			return result;
+		}
+		double elapsed() const { return t; }
+	};
+
+	template <class ... Args>
+	class cronometre<void, Args ...> {
+	private:
+		function<void(Args ...)> f;
+		double t;
+	public:
+		cronometre(function<void(Args ...)> func) { t = 0; f = func; }
+		void operator()(Args ... args) {
+			hr_clock::time_point ini, fi;
+
+			ini = hr_clock::now();
+			f(args ...);
+			fi = hr_clock::now();
+
+			t = span_s(chrono::duration_cast<span_s>(fi - ini)).count();
+		}
+		double elapsed() const { return t; }
+	};
+
 	int test1(int argc, char** argv) {
 		int n = 5;
 		string file_dicc = "1_dicc.txt";
@@ -43,6 +89,8 @@ namespace tests {
 		string file_test = "1_test.txt";
 		vector<paraula> nombres = vector<paraula>();
 		Diccionari* dicc;
+		vector<bool> trobats = vector<bool>(0);
+		hr_clock::time_point ini, fi;
 
 		motorAleatori.llavor(time(NULL));
 		genera_diccionari(file_dicc, n);
@@ -51,16 +99,24 @@ namespace tests {
 		dicc = diccionari::factory(2, file_dicc);
 		if (dicc == NULL) return -1;
 
-		llegeix(file_test, nombres);
-		for (paraula i : nombres)
-			cout << i << " " << (dicc->existeix(i) ? "FOUND" : "NOT FOUND") << endl;
+		if (llegeix(file_test, nombres) == -1)
+			return -1;
+		trobats.reserve(nombres.size()); // Assegura temps constant en .push_back
 
-		cout << endl;
+		ini = hr_clock::now();
+		for (paraula p : nombres)
+			trobats.push_back(dicc->existeix(p));
+		fi = hr_clock::now();
+		cout << "Temps sequencial: " << span_s(chrono::duration_cast<span_s>(fi - ini)).count() << " ms" << endl;
 
-		sort(nombres.begin(), nombres.end());
-		vector<bool> trobats = dicc->existeix_lot(nombres);
-		for (unsigned i = 0; i < nombres.size(); ++i)
-			cout << nombres[i] << " " << (trobats[i] ? "FOUND" : "NOT FOUND") << endl;
+		cronometre<void> cr = cronometre<void>([&nombres, dicc, &trobats]() {
+			sort(nombres.begin(), nombres.end());
+			trobats = dicc->existeix_lot(nombres);
+		});
+		cr();
+		cout << "Temps lot: " << cr.elapsed() << " ms" << endl;
+
+		for (unsigned i = 0; i < nombres.size(); ++i);
 
 #ifdef _MSC_VER
 		cin.ignore();
