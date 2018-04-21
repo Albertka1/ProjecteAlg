@@ -63,7 +63,7 @@ namespace tests {
 		string file_test = "1_test.txt";
 		vector<paraula> nombres = vector<paraula>();
 		Diccionari* dicc;
-
+          
 		motorAleatori.llavor(time(NULL));
 		genera_diccionari(file_dicc, n);
 		genera_diccionari(file_test, n * 4);
@@ -93,8 +93,8 @@ namespace tests {
 		hr_clock::time_point ini, fi;
 
 		motorAleatori.llavor(time(NULL));
-		genera_diccionari(file_dicc, n);
-		genera_diccionari(file_test, n * 4);
+		genera_diccionari(file_dicc, n); // Genera fitxer diccionari
+		genera_text(file_test, file_dicc, n * 4); // Genera fitxer test amb 4 vegades n
 
 		dicc = diccionari::factory(2, file_dicc);
 		if (dicc == NULL) return -1;
@@ -125,6 +125,12 @@ namespace tests {
 		delete dicc;
 		return 0;
 	}
+        
+        int hash_Search(){
+            
+        }
 }
 
-int main(int argc, char** argv) { return tests::test2(argc, argv); }
+int main(int argc, char** argv) {    
+    return tests::test2(argc, argv); 
+}
