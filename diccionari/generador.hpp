@@ -17,7 +17,7 @@ namespace diccionari {
 		std::default_random_engine gen = std::default_random_engine();
 
 	public:
-		void llavor(paraula p) { gen.seed(p); }
+		void llavor(time_t p) { gen.seed((unsigned)p); }
 		paraula genera() { return dist(gen); }
 	} motorAleatori;
 

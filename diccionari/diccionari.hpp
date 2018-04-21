@@ -88,7 +88,7 @@ namespace diccionari {
 			std::vector<bool> res(lot.size());
 
 			std::set_difference(lot.cbegin(), lot.cend(), pars.cbegin(), pars.cend(), std::inserter(falten, falten.begin()));
-			for (int i = 0, j = 0; i < lot.size() && j < falten.size(); ++i) {
+			for (unsigned i = 0, j = 0; i < lot.size() && j < falten.size(); ++i) {
 				if (lot[i] == falten[j]) {
 					++j;
 					res[i] = false;
