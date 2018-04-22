@@ -2,44 +2,24 @@
 #define diccionari_hpp
 
 #include <algorithm>
-#include <fstream>
 #include <iterator>
 #include <set>
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "paraula.hpp"
+#include "file_io.hpp"
 
 #define macro_stringCast operator std::string() const { return toString(pars); }
 
 namespace diccionari {
-	int llegeix(const std::string& filename, std::vector<paraula>& listNum) {
-		std::ifstream fs(filename);
-		std::string num;
-
-		if (!fs.is_open()) return -1;
-
-		while (getline(fs, num))
-			listNum.push_back(std::stoull(num));
-
-		fs.close();
-		return 0;
-	}
-	
 	template<class cont, class elem>
 	bool conte(const cont& c, const elem& e) { return find(c.cbegin(), c.cend(), e) != c.cend(); }
 
 	class Diccionari {
 	protected:
 		Diccionari() {}
-		template<class cont>
-		void init(cont& c, const std::string& filename) {
-			std::vector<paraula> pars(0);
-			int i = llegeix(filename, pars);
-			if (i == -1) throw;
-			std::copy(pars.begin(), pars.end(), std::inserter(c, c.begin()));
-		}
 		template<class cont>
 		std::string toString(const cont& c) const {
 			std::string s = "";
@@ -51,7 +31,7 @@ namespace diccionari {
 		virtual bool optimitza_lot() const { return false; }
 
 		virtual bool existeix(paraula p) const = 0;
-		
+
 		// PRE: lot està ordenat
 		virtual std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
 			std::vector<bool> res(0);
@@ -64,23 +44,20 @@ namespace diccionari {
 	private:
 		std::vector<paraula> pars;
 	public:
-		CercaSequencial(const std::string& filename) : Diccionari() {
-			pars = std::vector<paraula>(0);
-			init(pars, filename);
-		}
+		CercaSequencial(const std::vector<paraula>& v) : Diccionari() { pars = std::vector<paraula>(v); }
 
 		macro_stringCast
-		bool existeix(paraula p) const { return conte(pars, p); }
+			bool existeix(paraula p) const { return conte(pars, p); }
 	};
 
 	class SetFind : public Diccionari {
 	private:
 		std::set<paraula> pars;
 	public:
-		SetFind(const std::string& filename) : Diccionari() { init(pars, filename); }
+		SetFind(const std::vector<paraula>& v) : Diccionari() { pars = std::set<paraula>(v.begin(), v.end()); }
 
 		macro_stringCast
-		bool optimitza_lot() const { return false; } // Passar a true quan i_existeix_lot implementada
+			bool optimitza_lot() const { return true; } // Passar a true quan i_existeix_lot implementada
 
 		bool existeix(paraula p) const { return (pars.find(p) != pars.end()); }
 		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
@@ -105,23 +82,33 @@ namespace diccionari {
 	private:
 		std::unordered_set<paraula> pars;
 	public:
-		USetFind(const std::string& filename) : Diccionari() { init(pars, filename); }
+		USetFind(const std::vector<paraula>& v) : Diccionari() { pars = std::unordered_set<paraula>(v.begin(), v.end()); }
 
 		macro_stringCast
-		bool existeix(paraula p) const { return (pars.find(p) != pars.end()); }
+			bool existeix(paraula p) const { return (pars.find(p) != pars.end()); }
 	};
 
 	Diccionari* factory(int type, const std::string& filename) {
 		Diccionari* d;
+		std::vector<paraula> pars = std::vector<paraula>();
+		utils::read_f(filename, pars);
 		switch (type) {
-		case 1: d = new CercaSequencial(filename);
-			break;
-		case 2: d = new SetFind(filename);
-			break;
-		case 3: d = new USetFind(filename);
-			break;
-		default:
-			d = NULL;
+		case  1: d = new CercaSequencial(pars); break;
+		case  2: d = new SetFind(pars); break;
+		case  3: d = new USetFind(pars); break;
+		default: d = NULL;
+		}
+
+		return d;
+	}
+
+	Diccionari* factory(int type, const std::vector<paraula>& pars) {
+		Diccionari* d;
+		switch (type) {
+		case  1: d = new CercaSequencial(pars); break;
+		case  2: d = new SetFind(pars); break;
+		case  3: d = new USetFind(pars); break;
+		default: d = NULL;
 		}
 
 		return d;
