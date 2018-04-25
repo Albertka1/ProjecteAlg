@@ -18,35 +18,35 @@ using namespace diccionari;
 using namespace utils;
 
 namespace tests_diccionari {
-	int test1(int argc, char** argv) {
+	int test1(int d, int t, float p) {
 		cout << "TEST DICCIONARIS 1" << endl;
-
-		int d_size = 5;
-		int t_size = 5 * d_size;
-		float t_prop = 0.1F;
+		cout << "Tamany diccionari:\t" << d << endl;
+		cout << "Tamany test:\t\t" << d*t << endl;
+		cout << "Proporció elements:\t" << p << endl;
+		
 		Diccionari* dicc;
 		vector<paraula> vdicc = vector<paraula>();
 		vector<paraula> entrada = vector<paraula>();
 
 		motorAleatori.llavor(time(NULL));
-		vdicc = genera_diccionari(d_size);
+		vdicc = genera_diccionari(d);
 		dicc = diccionari::factory(2, vdicc);
-		entrada = genera_text(t_size, t_prop, vdicc);
+		entrada = genera_text(d*t, p, vdicc);
 
-		for (paraula i : entrada)
-			cout << i << " " << (dicc->existeix(i) ? "FOUND" : "NOT FOUND") << endl;
+		for (paraula par : entrada)
+			cout << par << " " << (dicc->existeix(par) ? "FOUND" : "NOT FOUND") << endl;
 
 		cout << endl;
 		delete dicc;
 		return 0;
 	}
 
-	int test2(int argc, char** argv) {
+	int test2(int d, int t, float p) {
 		cout << "TEST DICCIONARIS 2" << endl;
-
-		int d_size = 10000;
-		int t_size = 20 * d_size;
-		float t_prop = 0.01F;
+		cout << "Tamany diccionari:\t" << d << endl;
+		cout << "Tamany test:\t\t" << d*t << endl;
+		cout << "Proporció elements:\t" << p << endl;
+		
 		Diccionari* dicc;
 		vector<paraula> vdicc = vector<paraula>();
 		vector<paraula> entrada = vector<paraula>();
@@ -55,17 +55,17 @@ namespace tests_diccionari {
 		cout << "Generating ..." << endl;
 
 		motorAleatori.llavor(time(NULL));
-		vdicc = genera_diccionari(d_size);
+		vdicc = genera_diccionari(d);
 		dicc = diccionari::factory(2, vdicc);
-		entrada = genera_text(t_size, t_prop, vdicc);
+		entrada = genera_text(d*t, p, vdicc);
 		trobats.reserve(entrada.size()); // Assegura temps constant en .push_back
 		if (dicc == NULL) return -1;
 
 		cout << "Running ..." << endl;
 
 		function<void(void)> cerca_sequencial = function<void(void)>([entrada, &trobats, dicc](void) {
-			for (paraula p : entrada)
-				trobats.push_back(dicc->existeix(p));
+			for (paraula par : entrada)
+				trobats.push_back(dicc->existeix(par));
 		});
 
 		auto cr1 = crea_Cronometre(cerca_sequencial);
@@ -92,7 +92,7 @@ namespace tests_diccionari {
 namespace tests_utils {
 	int suma(int a, int b) { return a + b; }
 
-	int cronometre(int argc, char** argv) {
+	int cronometre() {
 		cout << "TEST CRONOMETRE" << endl;
 
 		auto crono_suma = crea_Cronometre(suma);
@@ -105,7 +105,7 @@ namespace tests_utils {
 		return 0;
 	}
 
-	int disp_t(int argc, char** argv) {
+	int disp_t() {
 		cout << "TEST DISPLAY_TABULAR" << endl;
 
 		vector<char> v1 = { 'a', 'b', 'c' };
@@ -119,10 +119,11 @@ namespace tests_utils {
 }
 
 int main(int argc, char** argv) {    
-	// if (tests_diccionari::test1(argc, argv) < 0) return -1;
-	// if (tests_diccionari::test2(argc, argv) < 0) return -2;
-	// if (tests_utils::cronometre(argc, argv) < 0) return -3;
-	// if (tests_utils::disp_t    (argc, argv) < 0) return -4;
+	if (tests_diccionari::test1(8, 5, 0.1) < 0) return -1;
+	if (tests_diccionari::test2(3000, 20, 0.01) < 0) return -2;
+	if (tests_diccionari::test2(30000, 20, 0.01) < 0) return -2;
+	if (tests_utils::cronometre() < 0) return -3;
+	if (tests_utils::disp_t    () < 0) return -4;
 
 #ifdef _MSC_VER
 	cin.ignore();
