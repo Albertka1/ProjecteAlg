@@ -19,10 +19,10 @@ using namespace utils;
 
 namespace tests_diccionari {
 	int test1(int d, int t, float p) {
-		cout << "TEST DICCIONARIS 1" << endl;
+		cout << "\tTEST DICCIONARIS 1" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
 		cout << "Tamany test:\t\t" << d*t << endl;
-		cout << "Proporció elements:\t" << p << endl;
+		cout << "Proporcio elements:\t" << p << endl;
 		
 		Diccionari* dicc;
 		vector<paraula> vdicc = vector<paraula>();
@@ -42,17 +42,18 @@ namespace tests_diccionari {
 	}
 
 	int test2(int d, int t, float p) {
-		cout << "TEST DICCIONARIS 2" << endl;
+		cout << "\tTEST DICCIONARIS 2" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
 		cout << "Tamany test:\t\t" << d*t << endl;
-		cout << "Proporció elements:\t" << p << endl;
+		cout << "Proporcio elements:\t" << p << endl;
+		cout << endl;
 		
 		Diccionari* dicc;
 		vector<paraula> vdicc = vector<paraula>();
 		vector<paraula> entrada = vector<paraula>();
 		vector<bool> trobats = vector<bool>();
 
-		cout << "Generating ..." << endl;
+		// cout << "Generating ..." << endl;
 
 		motorAleatori.llavor(time(NULL));
 		vdicc = genera_diccionari(d);
@@ -61,7 +62,7 @@ namespace tests_diccionari {
 		trobats.reserve(entrada.size()); // Assegura temps constant en .push_back
 		if (dicc == NULL) return -1;
 
-		cout << "Running ..." << endl;
+		// cout << "Running ..." << endl;
 
 		function<void(void)> cerca_sequencial = function<void(void)>([entrada, &trobats, dicc](void) {
 			for (paraula par : entrada)
@@ -70,30 +71,38 @@ namespace tests_diccionari {
 
 		auto cr1 = crea_Cronometre(cerca_sequencial);
 		cr1();
-		cout << "Temps sequencial: " << cr1.elapsed<chrono::milliseconds>() << " ms" << endl;
+		if (cr1.elapsed<chrono::milliseconds>() > 100LL)
+			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::milliseconds>() << " ms" << endl;
+		else
+			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::microseconds>() << " ys" << endl;
+		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
+		dicc->restart_count();
+
+		cout << endl;
 
 		auto cr2 = Cronometre<void>([&entrada, dicc, &trobats](void) {
 			sort(entrada.begin(), entrada.end());
 			trobats = dicc->existeix_lot(entrada);
 		});
 		cr2();
-		cout << "Temps lot: " << cr2.elapsed<chrono::milliseconds>() << " ms" << endl;
+		if (cr2.elapsed<chrono::milliseconds>() > 100LL)
+			cout << "Temps lot:\t\t" << cr2.elapsed<chrono::milliseconds>() << " ms" << endl;
+		else
+			cout << "Temps lot:\t\t" << cr2.elapsed<chrono::microseconds>() << " ys" << endl;
+		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
+		dicc->restart_count();
 
 		cout << endl;
 		delete dicc;
 		return 0;
 	}
-        
-    int hash_Search() {
-		return 0;
-    }
 }
 
 namespace tests_utils {
 	int suma(int a, int b) { return a + b; }
 
 	int cronometre() {
-		cout << "TEST CRONOMETRE" << endl;
+		cout << "\tTEST CRONOMETRE" << endl;
 
 		auto crono_suma = crea_Cronometre(suma);
 		int a = 2, b = 5;
@@ -106,7 +115,7 @@ namespace tests_utils {
 	}
 
 	int disp_t() {
-		cout << "TEST DISPLAY_TABULAR" << endl;
+		cout << "\tTEST DISPLAY_TABULAR" << endl;
 
 		vector<char> v1 = { 'a', 'b', 'c' };
 		vector<int>  v2 = { 1, 2, 3, 4 };
@@ -119,11 +128,13 @@ namespace tests_utils {
 }
 
 int main(int argc, char** argv) {    
-	if (tests_diccionari::test1(8, 5, 0.1f) < 0) return -1;
-	if (tests_diccionari::test2(3000, 20, 0.01f) < 0) return -2;
-	if (tests_diccionari::test2(30000, 20, 0.01f) < 0) return -2;
-	if (tests_utils::cronometre() < 0) return -3;
-	if (tests_utils::disp_t    () < 0) return -4;
+	// if (tests_diccionari::test1(8, 5, 0.1f) < 0) return -1;
+	if (tests_diccionari::test2(1000, 100, 0.01f) < 0) return -2;
+	if (tests_diccionari::test2(1000, 100, 0.05f) < 0) return -2;
+	if (tests_diccionari::test2(30000, 100, 0.01f) < 0) return -2;
+	if (tests_diccionari::test2(30000, 100, 0.05f) < 0) return -2;
+	// if (tests_utils::cronometre() < 0) return -3;
+	// if (tests_utils::disp_t    () < 0) return -4;
 
 #ifdef _MSC_VER
 	cin.ignore();
