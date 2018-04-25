@@ -17,6 +17,31 @@ namespace diccionari {
 	template<class cont, class elem>
 	bool conte(const cont& c, const elem& e) { return find(c.cbegin(), c.cend(), e) != c.cend(); }
 
+	template <class Comp>
+	class comp_count {
+	private:
+		int comps;
+		Comp comp;
+	public:
+		comp_count(Comp c) {
+			comps = 0;
+			comp = c;
+		}
+		bool operator()(paraula a, paraula b) {
+			return comp(a, b);
+		}
+		int count() { return comps; }
+		void restart() { comps = 0; }
+	};
+
+	template <class Comp>
+	comp_count<Comp> make_comparator_counter(Comp c) { return comp_count<Comp>(c); }
+
+	template <class T>
+	bool equals(const T& a, const T& b) { return a == b; }
+	template <class T>
+	bool less(const T& a, const T& b) { return a == b; }
+
 	class Diccionari {
 	protected:
 		Diccionari() {}
@@ -63,8 +88,10 @@ namespace diccionari {
 		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
 			std::vector<paraula> falten(0);
 			std::vector<bool> res(lot.size());
+			auto comp_count = make_comparator_counter(std::less<paraula>());
 
-			std::set_difference(lot.cbegin(), lot.cend(), pars.cbegin(), pars.cend(), std::inserter(falten, falten.begin()));
+			std::set_difference(lot.cbegin(), lot.cend(), pars.cbegin(), pars.cend(),
+				std::inserter(falten, falten.begin()), comp_count);
 			for (unsigned i = 0, j = 0; i < lot.size() && j < falten.size(); ++i) {
 				if (lot[i] == falten[j]) {
 					++j;
@@ -113,6 +140,7 @@ namespace diccionari {
 
 		return d;
 	}
+
 }
 
 #endif

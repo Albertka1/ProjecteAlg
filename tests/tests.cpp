@@ -72,7 +72,7 @@ namespace tests_diccionari {
 		cr1();
 		cout << "Temps sequencial: " << cr1.elapsed<chrono::milliseconds>() << " ms" << endl;
 
-		auto cr2 = Cronometre<void>::crea([&entrada, dicc, &trobats](void) {
+		auto cr2 = Cronometre<void>([&entrada, dicc, &trobats](void) {
 			sort(entrada.begin(), entrada.end());
 			trobats = dicc->existeix_lot(entrada);
 		});
