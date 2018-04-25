@@ -119,9 +119,9 @@ namespace tests_utils {
 }
 
 int main(int argc, char** argv) {    
-	if (tests_diccionari::test1(8, 5, 0.1) < 0) return -1;
-	if (tests_diccionari::test2(3000, 20, 0.01) < 0) return -2;
-	if (tests_diccionari::test2(30000, 20, 0.01) < 0) return -2;
+	if (tests_diccionari::test1(8, 5, 0.1f) < 0) return -1;
+	if (tests_diccionari::test2(3000, 20, 0.01f) < 0) return -2;
+	if (tests_diccionari::test2(30000, 20, 0.01f) < 0) return -2;
 	if (tests_utils::cronometre() < 0) return -3;
 	if (tests_utils::disp_t    () < 0) return -4;
 
