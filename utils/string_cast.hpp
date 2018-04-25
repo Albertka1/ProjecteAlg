@@ -2,6 +2,7 @@
 #define string_cast_hpp
 
 #include <string>
+#include <vector>
 
 namespace utils {
 	template <class T> std::string to_string(const T& val) { return (std::string)val; }
