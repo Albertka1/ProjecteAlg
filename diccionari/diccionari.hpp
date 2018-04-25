@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "paraula.hpp"
+
 #include "file_io.hpp"
 
 #define macro_stringCast operator std::string() const { return toString(pars); }

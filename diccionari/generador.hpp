@@ -1,12 +1,12 @@
 #ifndef arxius_hpp
 #define arxius_hpp
 
+#include <algorithm>
 #include <random>
 #include <string>
 #include <vector>
 
 #include "paraula.hpp"
-#include "file_io.hpp"
 
 namespace diccionari {
     std::vector<std::string> paraulesDicc;
@@ -42,18 +42,6 @@ namespace diccionari {
 			pars.push_back(motorAleatori.paraula_aleatoria());
 
 		return pars;
-	}
-
-	int genera_diccionari(int size, const std::string& filename) {
-		std::ofstream fs(filename);
-		if (!fs.is_open()) return -1;
-
-		std::vector<paraula> pars = genera_diccionari(size);
-		for (paraula p : pars)
-			fs << std::to_string(p) << std::endl;
-
-		fs.close();
-		return 0;
 	}
 
 	std::vector<paraula> genera_text(int size, float proportion, const std::vector<paraula>& dicc) {
