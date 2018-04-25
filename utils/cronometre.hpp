@@ -30,9 +30,6 @@ namespace utils {
 			
 			return result;
 		}
-		
-		template <class lambda_f>
-		static Cronometre<R, Args ...>crea(lambda_f func) { return Cronometre<R, Args ...>(func); }
 	};
 
 	template <class ... Args>
@@ -44,9 +41,6 @@ namespace utils {
 			this->f(args ...);
 			this->fi = std::chrono::high_resolution_clock::now();
 		}
-		
-		template <class f_lambda>
-		static Cronometre<void, Args ...> crea(f_lambda func) { return Cronometre<void, Args ...>(func); }
 	};
 	
 	template <class R, class ... Args>
