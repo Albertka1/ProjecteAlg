@@ -2,11 +2,15 @@
 #define diccionari_hpp
 
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <set>
 #include <string>
 #include <unordered_set>
 #include <vector>
+
+#include <iostream>
+using namespace std;
 
 #include "paraula.hpp"
 
@@ -21,19 +25,20 @@ namespace diccionari {
 	template <class Comp>
 	class comp_count {
 	private:
-		int comps;
-		Comp comp;
+		long long int * comps;
+		Comp cmp;
 	public:
-		comp_count(Comp c) {
-			comps = 0;
-			comp = c;
+		comp_count() {}
+		comp_count(Comp c, long long int * l) {
+			comps = l;
+			cmp = c;
 		}
-		bool operator()(paraula a, paraula b) {
-			return comp(a, b);
+		bool operator() (paraula a, paraula b) const {
+			(*comps)++;
+			return cmp(a, b);
 		}
-		int count() { return comps; }
-		void restart() { comps = 0; }
 	};
+	typedef comp_count<std::less<paraula>> cmp_par;
 
 	template <class Comp>
 	comp_count<Comp> make_comparator_counter(Comp c) { return comp_count<Comp>(c); }
@@ -64,6 +69,9 @@ namespace diccionari {
 			for (paraula p : lot) res.push_back(existeix(p));
 			return res;
 		}
+
+		virtual long long int count_comps() const { return -1; }
+		virtual void restart_count() {}
 	};
 
 	class CercaSequencial : public Diccionari {
@@ -78,21 +86,30 @@ namespace diccionari {
 
 	class SetFind : public Diccionari {
 	private:
-		std::set<paraula> pars;
+		long long int n_comp;
+		cmp_par cmp;
+		std::set<paraula, cmp_par> pars;
+
 	public:
-		SetFind(const std::vector<paraula>& v) : Diccionari() { pars = std::set<paraula>(v.begin(), v.end()); }
+		SetFind(const std::vector<paraula>& v) : Diccionari() {
+			cmp = cmp_par(std::less<paraula>(), &n_comp);
+			pars = std::set<paraula, cmp_par>(v.begin(), v.end(), cmp);
+			n_comp = 0;
+		}
 
 		macro_stringCast
-			bool optimitza_lot() const { return true; } // Passar a true quan i_existeix_lot implementada
+		bool optimitza_lot() const { return true; }
 
-		bool existeix(paraula p) const { return (pars.find(p) != pars.end()); }
+		bool existeix(paraula p) const {
+			bool res = pars.find(p) != pars.end();
+			return res;
+		}
 		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
 			std::vector<paraula> falten(0);
 			std::vector<bool> res(lot.size());
-			auto comp_count = make_comparator_counter(std::less<paraula>());
 
 			std::set_difference(lot.cbegin(), lot.cend(), pars.cbegin(), pars.cend(),
-				std::inserter(falten, falten.begin()), comp_count);
+				std::inserter(falten, falten.begin()), cmp);
 			for (unsigned i = 0, j = 0; i < lot.size() && j < falten.size(); ++i) {
 				if (lot[i] == falten[j]) {
 					++j;
@@ -104,6 +121,9 @@ namespace diccionari {
 
 			return res;
 		}
+
+		long long int count_comps() const { return n_comp; }
+		void restart_count() { n_comp = 0; }
 	};
 
 	class USetFind : public Diccionari {
