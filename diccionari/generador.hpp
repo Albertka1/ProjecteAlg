@@ -1,5 +1,5 @@
-#ifndef arxius_hpp
-#define arxius_hpp
+#ifndef diccionari_generador_hpp
+#define diccionari_generador_hpp
 
 #include <algorithm>
 #include <random>

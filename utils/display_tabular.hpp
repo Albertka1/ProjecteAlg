@@ -1,5 +1,5 @@
-#ifndef display_tabular_hpp
-#define display_tabular_hpp
+#ifndef utils_display_tabular_hpp
+#define utils_display_tabular_hpp
 
 #include <string>
 #include <vector>

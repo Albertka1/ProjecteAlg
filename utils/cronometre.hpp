@@ -1,5 +1,5 @@
-#ifndef cronometre_hpp
-#define cronometre_hpp
+#ifndef utils_cronometre_hpp
+#define utils_cronometre_hpp
 
 #include <chrono>
 #include <functional>

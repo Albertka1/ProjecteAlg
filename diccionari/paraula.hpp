@@ -1,5 +1,5 @@
-#ifndef paraula_hpp
-#define paraula_hpp
+#ifndef diccionari_paraula_hpp
+#define diccionari_paraula_hpp
 
 namespace diccionari {
 	// Tipus dels nombres a utilitzar (unsigned de 64bit)

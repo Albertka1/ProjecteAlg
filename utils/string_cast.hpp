@@ -1,5 +1,5 @@
-#ifndef string_cast_hpp
-#define string_cast_hpp
+#ifndef utils_string_cast_hpp
+#define utils_string_cast_hpp
 
 #include <string>
 #include <vector>
