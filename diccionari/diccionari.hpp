@@ -1,5 +1,5 @@
-#ifndef diccionari_hpp
-#define diccionari_hpp
+#ifndef diccionari_diccionari_hpp
+#define diccionari_diccionari_hpp
 
 #include <algorithm>
 #include <functional>
@@ -133,18 +133,6 @@ namespace diccionari {
 		macro_stringCast
 			bool existeix(paraula p) const { return (pars.find(p) != pars.end()); }
 	};
-
-	Diccionari* factory(int type, const std::vector<paraula>& pars) {
-		Diccionari* d;
-		switch (type) {
-		case  1: d = new CercaSequencial(pars); break;
-		case  2: d = new SetFind(pars); break;
-		case  3: d = new USetFind(pars); break;
-		default: d = NULL;
-		}
-
-		return d;
-	}
 
 }
 
