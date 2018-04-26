@@ -14,8 +14,6 @@ using namespace std;
 
 #include "paraula.hpp"
 
-#include "file_io.hpp"
-
 #define macro_stringCast operator std::string() const { return toString(pars); }
 
 namespace diccionari {
@@ -135,20 +133,6 @@ namespace diccionari {
 		macro_stringCast
 			bool existeix(paraula p) const { return (pars.find(p) != pars.end()); }
 	};
-
-	Diccionari* factory(int type, const std::string& filename) {
-		Diccionari* d;
-		std::vector<paraula> pars = std::vector<paraula>();
-		utils::read_f(filename, pars);
-		switch (type) {
-		case  1: d = new CercaSequencial(pars); break;
-		case  2: d = new SetFind(pars); break;
-		case  3: d = new USetFind(pars); break;
-		default: d = NULL;
-		}
-
-		return d;
-	}
 
 	Diccionari* factory(int type, const std::vector<paraula>& pars) {
 		Diccionari* d;
