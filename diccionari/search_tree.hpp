@@ -76,7 +76,8 @@ namespace diccionari {
 			}
 		}
 
-		BinaryNode *DSW(int size, int leaves) {
+		BinaryNode *DSW(int size) { // Day-Stout-Warren algorithm
+			int leaves = size + 1 - (int)std::pow(2, (int)std::log2(size + 1));
 			BinaryNode root;
 			root.R = this;
 
@@ -123,7 +124,7 @@ namespace diccionari {
 			for (unsigned i = 1; i < pars.size(); ++i) {
 				tree->insert(pars[i]);
 			}
-			tree = tree->DSW(pars.size(), pars.size() + 1 - (int)std::pow(2, (int)std::log2(pars.size() + 1)));
+			tree = tree->DSW(pars.size());
 		}
 		~BinarySearchTree() { if (tree != NULL) delete tree; }
 
