@@ -1,6 +1,7 @@
 #ifndef diccionari_search_tree_hpp
 #define diccionari_search_tree_hpp
 
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -26,63 +27,65 @@ namespace diccionari {
 			if (R != NULL) delete R;
 		}
 
-		BinaryNode * rotateL() {
-			BinaryNode *leaf = R->L;
-			BinaryNode *root = R;
-			R->L = this;
-			R = leaf;
-			return root;
-		}
-		BinaryNode * rotateR() {
-			BinaryNode *leaf = L->R;
-			BinaryNode *root = L;
-			L->R = this;
-			L = leaf;
-			return root;
-		}
-
 		void insert(paraula p) {
 			if (p < n) {
 				if (L != NULL) L->insert(p);
 				else L = new BinaryNode(p);
 			}
-			else {
+			else if (p > n) {
 				if (R != NULL) R->insert(p);
 				else R = new BinaryNode(p);
 			}
 		}
 
-		int height() {
-			int hl, hr;
-
-			if (L != NULL) hl = L->height();
-			else hl = 0;
-
-			if (R != NULL) hr = R->height();
-			else hr = 0;
-
-			return max2(hl, hr) + 1;
+		static void list(BinaryNode *root) {
+			BinaryNode *tail = root;
+			BinaryNode *rest = root->R;
+			while (rest != NULL) {
+				if (rest->L == NULL) {
+					tail = rest;
+					rest = rest->R;
+				}
+				else {
+					BinaryNode *tmp = rest->L;
+					rest->L = tmp->R;
+					tmp->R = rest;
+					rest = tmp;
+					tail->R = tmp;
+				}
+			}
 		}
-		BinaryNode * balance() {
-			int hl, hr;
 
-			if (L != NULL) {
-				L = L->balance();
-				hl = L->height();
+		static void compress(BinaryNode *root, int count) {
+			BinaryNode *scanner = root;
+			for (int i = 0; i < count; i++) {
+				BinaryNode *child = scanner->R;
+				scanner->R = child->R;
+				scanner = scanner->R;
+				child->R = scanner->L;
+				scanner->L = child;
 			}
-			else hl = 0;
+		}
 
-			if (R != NULL) {
-				R = R->balance();
-				hr = R->height();
+		static void list_to_tree(BinaryNode *root, int size, int leaves) {
+			compress(root, leaves);
+			size = size - leaves;
+			while (size > 1) {
+				size = size / 2;
+				compress(root, size);
 			}
-			else hr = 0;
+		}
 
-			BinaryNode * root = this;
-			if (hl > hr + 1) root = rotateR()->balance();
-			if (hl + 1 < hr) root = rotateL()->balance();
+		BinaryNode *DSW(int size, int leaves) {
+			BinaryNode root;
+			root.R = this;
 
-			return root;
+			list(&root);
+			list_to_tree(&root, size, leaves);
+
+			BinaryNode *r = root.R;
+			root.R = NULL;
+			return r;
 		}
 
 		bool exists(paraula p) {
@@ -120,7 +123,7 @@ namespace diccionari {
 			for (unsigned i = 1; i < pars.size(); ++i) {
 				tree->insert(pars[i]);
 			}
-			tree = tree->balance();
+			tree = tree->DSW(pars.size(), pars.size() + 1 - (int)std::pow(2, (int)std::log2(pars.size() + 1)));
 		}
 		~BinarySearchTree() { if (tree != NULL) delete tree; }
 
