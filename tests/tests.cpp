@@ -177,37 +177,38 @@ namespace tests_utils {
 	}
 }
 
+int test_funcs(int type, int d, int t, float p) {
+	int i = -1;
+
+	if (tests_diccionari::minitest(type) < 0) return i; --i;
+	if (tests_diccionari::existeix(type, d, t, p) < 0) return i; --i;
+	if (tests_diccionari::existeix_lot(type, d, t, p) < 0) return i; --i;
+
+	return 0;
+}
+
+int metrics(int type, int d, int t, float p) {
+	int i = -1;
+
+	if (tests_diccionari::comparativa(type, d, t, p) < 0) return i; --i;
+
+	return 0;
+}
+
 int main(int argc, char** argv) {
 	int i = -1;
 
-	//if (tests_diccionari::minitest(DictType::tCercaSequencial) < 0) return i; --i;
-	//if (tests_diccionari::existeix(DictType::tCercaSequencial, 8, 5, 0.1f) < 0) return i; --i;
-	//if (tests_diccionari::existeix_lot(DictType::tCercaSequencial, 8, 5, 0.1f) < 0) return i; --i;
+	//if (test_funcs(DictType::tCercaSequencial, 8, 5, 0.1f) < 0) return i; --i;
+	//if (test_funcs(DictType::tSetFind, 8, 5, 0.1f) < 0) return i; --i;
+	//if (test_funcs(DictType::tUSetFind, 8, 5, 0.1f) < 0) return i; --i;
+	//if (test_funcs(DictType::tBTree, 8, 5, 0.1f) < 0) return i; --i;
+	//if (test_funcs(DictType::tBinarySearchTree, 8, 5, 0.1f) < 0) return i; --i;
+	//if (test_funcs(DictType::tTreap, 8, 5, 0.1f) < 0) return i; --i;
 
-	//if (tests_diccionari::minitest(DictType::tSetFind) < 0) return i; --i;
-	//if (tests_diccionari::existeix(DictType::tSetFind, 8, 5, 0.1f) < 0) return i; --i;
-	//if (tests_diccionari::existeix_lot(DictType::tSetFind, 8, 5, 0.1f) < 0) return i; --i;
-
-	//if (tests_diccionari::minitest(DictType::tUSetFind) < 0) return i; --i;
-	//if (tests_diccionari::existeix(DictType::tUSetFind, 8, 5, 0.1f) < 0) return i; --i;
-	//if (tests_diccionari::existeix_lot(DictType::tUSetFind, 8, 5, 0.1f) < 0) return i; --i;
-
-	//if (tests_diccionari::minitest(DictType::tBTree) < 0) return i; --i;
-	//if (tests_diccionari::existeix(DictType::tBTree, 8, 5, 0.1f) < 0) return i; --i;
-	//if (tests_diccionari::existeix_lot(DictType::tBTree, 8, 5, 0.1f) < 0) return i; --i;
-
-	if (tests_diccionari::minitest(DictType::tBinarySearchTree) < 0) return i; --i;
-	if (tests_diccionari::existeix(DictType::tBinarySearchTree, 8, 5, 0.1f) < 0) return i; --i;
-	if (tests_diccionari::existeix_lot(DictType::tBinarySearchTree, 8, 5, 0.1f) < 0) return i; --i;
-
-	//if (tests_diccionari::minitest(DictType::tTreap) < 0) return i; --i;
-	//if (tests_diccionari::existeix(DictType::tTreap, 8, 5, 0.1f) < 0) return i; --i;
-	//if (tests_diccionari::existeix_lot(DictType::tTreap, 8, 5, 0.1f) < 0) return i; --i;
-
-	//if (tests_diccionari::comparativa(DictType::tSetFind, 1000, 100, 0.01f) < 0) return i; --i;
-	//if (tests_diccionari::comparativa(DictType::tSetFind, 1000, 100, 0.05f) < 0) return i; --i;
-	//if (tests_diccionari::comparativa(DictType::tSetFind, 30000, 100, 0.01f) < 0) return i; --i;
-	//if (tests_diccionari::comparativa(DictType::tSetFind, 30000, 100, 0.05f) < 0) return i; --i;
+	//if (metrics(DictType::tSetFind, 1000, 100, 0.01f) < 0) return i; --i;
+	//if (metrics(DictType::tSetFind, 1000, 100, 0.05f) < 0) return i; --i;
+	//if (metrics(DictType::tSetFind, 30000, 100, 0.01f) < 0) return i; --i;
+	//if (metrics(DictType::tSetFind, 30000, 100, 0.05f) < 0) return i; --i;
 
 	//if (tests_utils::cronometre() < 0) return i; --i;
 	//if (tests_utils::disp_t    () < 0) return i; --i;
