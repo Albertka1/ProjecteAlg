@@ -15,8 +15,6 @@ namespace diccionari {
 		return b;
 	}
 
-	class BTree : public Diccionari {};
-
 	class BinarySearchTree : public Diccionari {
 	private:
 		class Node {

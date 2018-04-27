@@ -11,7 +11,7 @@ namespace diccionari {
 	enum DictType {
 		tCercaSequencial=1, tSetFind, tUSetFind, // contenidors_stl
 		// filtres
-		tBTree, tBST, tTreap, // search_tree
+		tBST, tTreap, // search_tree
 		// taules_hash
 	};
 
@@ -26,7 +26,6 @@ namespace diccionari {
 		// filtres
 		
 		// search_tree
-		// case  tBTree: d = new BTree(pars); break;
 		case  tBST: d = new BinarySearchTree(pars); break;
 		// case  tTreap: new Treap(pars); break;
 		
