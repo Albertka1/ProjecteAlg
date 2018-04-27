@@ -43,7 +43,7 @@ namespace diccionari {
 				}
 			}
 
-			static void list(Node *root) {
+			static void tree_to_list(Node *root) {
 				Node *tail = root;
 				Node *rest = root->R;
 				while (rest != NULL) {
@@ -86,7 +86,7 @@ namespace diccionari {
 				Node root;
 				root.R = this;
 
-				list(&root);
+				tree_to_list(&root);
 				list_to_tree(&root, size, leaves);
 
 				Node *r = root.R;
@@ -105,8 +105,8 @@ namespace diccionari {
 				if (L == NULL && R == NULL) return std::to_string(n);
 
 				std::string s = std::to_string(n) + "(";
-				s += ((L != NULL) ? (std::string)*L : "N") + " ";
-				s += ((R != NULL) ? (std::string)*R : "N") + ")";
+				s += ((L != NULL) ? (std::string)*L : "NULL") + " ";
+				s += ((R != NULL) ? (std::string)*R : "NULL") + ")";
 				return s;
 			}
 
@@ -120,15 +120,21 @@ namespace diccionari {
 
 	public:
 		BinarySearchTree(const std::vector<paraula>& pars) : Diccionari() {
-			tree = new Node(pars[0]);
-			for (unsigned i = 1; i < pars.size(); ++i) {
-				tree->insert(pars[i]);
+			if (pars.size() == 0) tree = NULL;
+			else {
+				tree = new Node(pars[0]);
+				for (unsigned i = 1; i < pars.size(); ++i) {
+					tree->insert(pars[i]);
+				}
+				tree = tree->DSW(pars.size());
 			}
-			tree = tree->DSW(pars.size());
 		}
 		~BinarySearchTree() { if (tree != NULL) delete tree; }
 
-		bool existeix(paraula p) const { return tree->exists(p); }
+		bool existeix(paraula p) const {
+			if (tree == NULL) return false;
+			return tree->exists(p);
+		}
 
 		operator std::string() const { return (std::string)*tree; }
 	};
