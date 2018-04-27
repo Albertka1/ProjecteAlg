@@ -155,12 +155,13 @@ namespace tests_diccionari {
 		vdicc = genera_diccionari(d);
 		dicc = diccionari::factory(n, vdicc);
 		entrada = genera_text(d*t, p, vdicc);
+		vector<paraula> copia = vector<paraula>(entrada);
 		trobats.reserve(entrada.size()); // Assegura temps constant en .push_back
 		if (dicc == NULL) return -1;
 		
 		// cout << "Running ..." << endl;
 		
-		function<void(void)> cerca_sequencial = function<void(void)>([entrada, &trobats, dicc](void) {
+		function<void(void)> cerca_sequencial = function<void(void)>([dicc, entrada, &trobats](void) {
 			for (paraula par : entrada)
 				trobats.push_back(dicc->existeix(par));
 		});
@@ -176,8 +177,7 @@ namespace tests_diccionari {
 		
 		cout << endl;
 		
-		auto cr2 = Cronometre<void>([&entrada, dicc, &trobats](void) {
-			sort(entrada.begin(), entrada.end());
+		auto cr2 = Cronometre<void>([dicc, &entrada, &trobats](void) {
 			trobats = dicc->existeix_lot(entrada);
 		});
 		cr2();
@@ -187,6 +187,22 @@ namespace tests_diccionari {
 			cout << "Temps lot:\t\t" << cr2.elapsed<chrono::microseconds>() << " ys" << endl;
 		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
 		dicc->restart_count();
+
+		cout << endl;
+
+		auto cr3 = Cronometre<void>([dicc, entrada, &trobats](void) {
+			trobats = dicc->existeix_lot_ordenat(entrada);
+		});
+		cr3();
+		if (cr3.elapsed<chrono::milliseconds>() > 100LL)
+			cout << "Temps lot ordenat:\t" << cr3.elapsed<chrono::milliseconds>() << " ms" << endl;
+		else
+			cout << "Temps lot ordenat:\t" << cr3.elapsed<chrono::microseconds>() << " ys" << endl;
+		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
+		dicc->restart_count();
+
+		sort(copia.begin(), copia.end());
+		cout << (entrada == copia ? "OK" : "ENTRADA ADULTERADA") << endl;
 		
 		cout << endl;
 		delete dicc;
@@ -249,18 +265,18 @@ int main(int argc, char** argv) {
 	// if (test_funcs(DictType::tSetFind, 8, 5, 0.1f) < 0) return i; --i;
 	// if (test_funcs(DictType::tUSetFind, 8, 5, 0.1f) < 0) return i; --i;
 	// if (test_funcs(DictType::tBTree, 8, 5, 0.1f) < 0) return i; --i;
-	if (test_funcs(DictType::tBST, 8, 5, 0.1f) < 0) return i; --i;
+	// if (test_funcs(DictType::tBST, 8, 5, 0.1f) < 0) return i; --i;
 	// if (test_funcs(DictType::tTreap, 8, 5, 0.1f) < 0) return i; --i;
 	
 	// if (metrics(DictType::tSetFind, 1000, 100, 0.01f) < 0) return i; --i;
 	// if (metrics(DictType::tSetFind, 1000, 100, 0.05f) < 0) return i; --i;
-	// if (metrics(DictType::tSetFind, 30000, 100, 0.01f) < 0) return i; --i;
-	// if (metrics(DictType::tSetFind, 30000, 100, 0.05f) < 0) return i; --i;
+	// if (metrics(DictType::tSetFind, 100000, 100, 0.01f) < 0) return i; --i;
+	// if (metrics(DictType::tSetFind, 100000, 100, 0.05f) < 0) return i; --i;
 	
 	// if (metrics(DictType::tBST, 1000, 100, 0.01f) < 0) return i; --i;
 	// if (metrics(DictType::tBST, 1000, 100, 0.05f) < 0) return i; --i;
-	// if (metrics(DictType::tBST, 30000, 100, 0.01f) < 0) return i; --i;
-	// if (metrics(DictType::tBST, 30000, 100, 0.05f) < 0) return i; --i;
+	// if (metrics(DictType::tBST, 100000, 100, 0.01f) < 0) return i; --i;
+	// if (metrics(DictType::tBST, 100000, 100, 0.05f) < 0) return i; --i;
 	
 	// if (tests_utils::cronometre() < 0) return i; --i;
 	// if (tests_utils::disp_t    () < 0) return i; --i;
