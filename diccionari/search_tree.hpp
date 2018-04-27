@@ -21,23 +21,23 @@ namespace diccionari {
 	private:
 		class Node {
 		public:
-			paraula n;
+			paraula key;
 			Node *L;
 			Node *R;
 
 			Node() { init(); }
-			Node(paraula p) { init(); n = p; }
+			Node(paraula p) { init(); key = p; }
 			~Node() {
 				if (L != NULL) delete L;
 				if (R != NULL) delete R;
 			}
 
 			void insert(paraula p) {
-				if (p < n) {
+				if (p < key) {
 					if (L != NULL) L->insert(p);
 					else L = new Node(p);
 				}
-				else if (p > n) {
+				else if (p > key) {
 					if (R != NULL) R->insert(p);
 					else R = new Node(p);
 				}
@@ -95,16 +95,65 @@ namespace diccionari {
 			}
 
 			bool exists(paraula p) {
-				if (p == n) return true;
-				if (p < n && L != NULL) return L->exists(p);
-				if (p > n && R != NULL) return R->exists(p);
+				if (p == key) return true;
+				if (p < key && L != NULL) return L->exists(p);
+				if (p > key && R != NULL) return R->exists(p);
 				return false;
 			}
 
-			operator std::string() {
-				if (L == NULL && R == NULL) return std::to_string(n);
+			void secciona(paraula p, Node *& l, Node *& r) {
+				if (p < key) {
+					l = L;
+					r = this;
+					if (L != NULL) L->secciona(p, l, r);
+				}
+				else if (p > key) {
+					l = this;
+					r = R;
+					if (R != NULL) R->secciona(p, l, r);
+				}
+				else {
+					l = this; r = this;
+				}
+			}
 
-				std::string s = std::to_string(n) + "(";
+			std::vector<bool> q_search(std::vector<paraula>& lot) {
+				paraula pivot = lot[0];
+				std::vector<bool> trobats   = std::vector<bool>();
+				std::vector<paraula> vLeft  = std::vector<paraula>();
+				std::vector<paraula> vRight = std::vector<paraula>();
+
+				trobats.reserve(lot.size());
+
+				for (unsigned i = 0; i < lot.size(); ++i) {
+					if (lot[i] < pivot) vLeft.push_back(lot[i]);
+					else vRight.push_back(lot[i]);
+				}
+
+				Node *nLeft = this, *nRight = this;
+				secciona(pivot, nLeft, nRight);
+
+				if (nLeft != NULL && vLeft.size() > 0)
+					trobats = nLeft->q_search(vLeft);
+
+				trobats.push_back(nLeft == nRight);
+
+				if (nRight != NULL && vRight.size() > 0) {
+					std::vector<bool> tmp = nRight->q_search(vRight);
+					trobats.insert(trobats.end(), tmp.begin(), tmp.end());
+				}
+
+				lot = vLeft;
+				lot.push_back(pivot);
+				lot.insert(lot.end(), vRight.begin(), vRight.end());
+
+				return trobats;
+			}
+
+			operator std::string() {
+				if (L == NULL && R == NULL) return std::to_string(key);
+
+				std::string s = std::to_string(key) + "(";
 				s += ((L != NULL) ? (std::string)*L : "NULL") + " ";
 				s += ((R != NULL) ? (std::string)*R : "NULL") + ")";
 				return s;
@@ -119,14 +168,14 @@ namespace diccionari {
 		Node *tree;
 
 	public:
-		BinarySearchTree(const std::vector<paraula>& pars) : Diccionari() {
-			if (pars.size() == 0) tree = NULL;
+		BinarySearchTree(const std::vector<paraula>& v) : Diccionari() {
+			if (v.size() == 0) tree = NULL;
 			else {
-				tree = new Node(pars[0]);
-				for (unsigned i = 1; i < pars.size(); ++i) {
-					tree->insert(pars[i]);
+				tree = new Node(v[0]);
+				for (unsigned i = 1; i < v.size(); ++i) {
+					tree->insert(v[i]);
 				}
-				tree = tree->DSW(pars.size());
+				tree = tree->DSW(v.size());
 			}
 		}
 		~BinarySearchTree() { if (tree != NULL) delete tree; }
@@ -136,25 +185,79 @@ namespace diccionari {
 			return tree->exists(p);
 		}
 
+		bool optimitza_lot() { return false; }
+		std::vector<bool> existeix_lot(std::vector<paraula>& lot) {
+			return tree->q_search(lot);
+		}
+
 		operator std::string() const { return (std::string)*tree; }
 	};
 
 	class Treap : public Diccionari {
 	private:
-		class Node {};
+		typedef int prio_type;
+		static prio_type priority(paraula p) { return p % 10000; }
+		static bool comp_p(paraula a, paraula b) { return priority(a) < priority(b); }
+		void init(std::vector<paraula>& v) {
+			if (v.size() == 0) tree = NULL;
+			else {
+				sort(v.begin(), v.end(), comp_p);
+				tree = new Node(v[0]);
+				for (unsigned i = 1; i < v.size(); ++i) {
+					tree->insert(v[i]);
+				}
+			}
+		}
+
+		class Node {
+		public:
+			paraula key;
+			prio_type prio;
+			Node *L, *R;
+
+			Node() {}
+			Node(paraula p) { key = p; prio = priority(p); }
+			~Node() {
+				if (L != NULL) delete L;
+				if (R != NULL) delete R;
+			}
+
+			void insert(paraula p) {
+				if (p < key) {
+						if (L != NULL) L->insert(p);
+						else L = new Node(p);
+				}
+				else if (p > key) {
+					if (R != NULL) R->insert(p);
+					else R = new Node(p);
+				}
+			}
+
+			bool exists(paraula p, prio_type pr) {
+				if (pr > prio) return false;
+				if (p < key) {
+					if (L != NULL) return L->exists(p, pr);
+					else return false;
+				}
+				else if (p > key) {
+					if (R != NULL) return R->exists(p, pr);
+					else return false;
+				}
+				else return true;
+			}
+			bool exists(paraula p) { return exists(p, priority(p)); }
+		};
 		Node *tree;
 
-		static int priority(paraula p) { return p % 10000; }
-		static bool comp(paraula a, paraula b) { return priority(a) < priority(b); }
-
 	public:
-		Treap(const std::vector<paraula>& v) : Diccionari() {
 
-		}
+		Treap(std::vector<paraula>& v) : Diccionari() { init(v); }
+		Treap(const std::vector<paraula>& v) { std::vector<paraula> n = v; init(n); }
+		~Treap() { if (tree != NULL) delete tree; }
 
 		operator std::string() const = 0;
 		
-		bool existeix(paraula p) const = 0;
+		bool existeix(paraula p) { return tree->exists(p); }
 	};
 }
 
