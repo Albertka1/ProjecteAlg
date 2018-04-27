@@ -1,13 +1,27 @@
-flags = -std=c++1y
-diccionari = diccionari/diccionari.hpp diccionari/factory.hpp diccionari/generador.hpp diccionari/paraula.hpp
-utils = utils/cronometre.hpp utils/display_tabular.hpp utils/file_io.hpp utils/string_cast.hpp
+flags = -std=c++1y -I./ -O2
+diccionari = \
+	diccionari/paraula.hpp \
+	diccionari/diccionari.hpp \
+	diccionari/factory.hpp \
+	diccionari/generador.hpp \
+	\
+	diccionari/contenidors_stl.hpp \
+	diccionari/filtres.hpp \
+	diccionari/search_tree.hpp \
+	diccionari/taules_hash.hpp \
+	
+utils = \
+	utils/cronometre.hpp \
+	utils/display_tabular.hpp \
+	utils/file_io.hpp \
+	utils/string_cast.hpp
 
 all: test
 
 test: tests/tests.cpp ${diccionari} ${utils}
 	g++ ${flags} -o test tests/tests.cpp
 
-check: check/d_diccionari check/d_generador check/d_paraula check/u_cronometre check/u_display_tabular check/u_file_io check/u_string_cast
+check: check/d_paraula check/d_diccionari check/d_factory check/d_generador check/u_cronometre check/u_display_tabular check/u_file_io check/u_string_cast
 
 check/d_%: diccionari/%.hpp
 	g++ ${flags} -c -o $@ $^
