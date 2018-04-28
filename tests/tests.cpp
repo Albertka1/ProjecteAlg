@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <algorithm>
 #include <ctime>
 #include <functional>
@@ -5,14 +7,15 @@
 #include <string>
 #include <vector>
 
-#include "diccionari/diccionari.hpp"
-#include "diccionari/factory.hpp"
-#include "diccionari/generador.hpp"
+#include "diccionari.hpp"
+#include "factory.hpp"
+#include "generador.hpp"
+#include "cronometre.hpp"
+#include "display_tabular.hpp"
+#include "file_io.hpp"
+#include "string_cast.hpp"
 
-#include "utils/cronometre.hpp"
-#include "utils/display_tabular.hpp"
-#include "utils/file_io.hpp"
-#include "utils/string_cast.hpp"
+
 
 using namespace std;
 using namespace diccionari;
@@ -280,7 +283,18 @@ int main(int argc, char** argv) {
 	
 	// if (tests_utils::cronometre() < 0) return i; --i;
 	// if (tests_utils::disp_t    () < 0) return i; --i;
-	
+        
+        int type = diccionari::Murmur; //Murmur
+        int n = 100; 
+            int d = n;
+            int t = 2*n;
+        float p = 0.5f;
+        tests_diccionari::comparativa(1,d,t,p);
+        tests_diccionari::comparativa(type,d,t,p);
+		tests_diccionari::comparativa(type + 2, d, t, p);
+		tests_diccionari::comparativa(type+1,d,t,p);
+
+        
 #ifdef _MSC_VER
 	cin.ignore();
 #endif

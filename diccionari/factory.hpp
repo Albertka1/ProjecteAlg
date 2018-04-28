@@ -1,6 +1,8 @@
 #ifndef diccionari_factory_hpp
 #define diccionari_factory_hpp
 
+#include <iostream>
+
 #include "diccionari.hpp"
 #include "contenidors_stl.hpp"
 #include "filtres.hpp"
@@ -13,6 +15,7 @@ namespace diccionari {
 		// filtres
 		tBST, tTreap, // search_tree
 		// taules_hash
+                Murmur, SHA, DJB2, SimHash, CityHash
 	};
 
 	Diccionari* factory(int type, const std::vector<paraula>& pars) {
@@ -30,10 +33,13 @@ namespace diccionari {
 		// case  tTreap: new Treap(pars); break;
 		
 		// taules_hash
-		
+                case Murmur: d = new HashTableDefault(pars); std::cout << "Murmur" << std::endl; break;
+                case SHA: d = new HashTableSHA(pars); std::cout << "SHA amb shrink per tall" << std::endl; break;
+				case DJB2: d = new HashTableDJB2(pars); std::cout << "DJB2" << std::endl; break;
+                
 		default: d = NULL;
 		}
-
+                
 		return d;
 	}
 }
