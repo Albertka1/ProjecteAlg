@@ -15,7 +15,7 @@ namespace diccionari {
 		// filtres
 		tBST, tTreap, // search_tree
 		// taules_hash
-                Murmur, SHA, DJB2, SimHash, CityHash
+         Murmur, SHA, DJB2, MD5, xxHash, FNV
 	};
 
 	Diccionari* factory(int type, const std::vector<paraula>& pars) {
@@ -33,10 +33,12 @@ namespace diccionari {
 		// case  tTreap: new Treap(pars); break;
 		
 		// taules_hash
-                case Murmur: d = new HashTableDefault(pars); std::cout << "Murmur" << std::endl; break;
-                case SHA: d = new HashTableSHA(pars); std::cout << "SHA amb shrink per tall" << std::endl; break;
-				case DJB2: d = new HashTableDJB2(pars); std::cout << "DJB2" << std::endl; break;
-                
+		case Murmur:	d = new HashTableDefault(pars);	std::cout << "Murmur" << std::endl;						break;
+		case SHA:		d = new HashTableSHA(pars);		std::cout << "SHA amb shrink per tall" << std::endl;	break;
+		case DJB2:		d = new HashTableDJB2(pars);	std::cout << "DJB2" << std::endl;						break;
+		case MD5:		d = new HashTableMD5(pars);		std::cout << "MD5" << std::endl;						break;
+		case xxHash:	d = new HashTablexxHash(pars);	std::cout << "xxHash" << std::endl;						break;
+		case FNV:		d = new HashTableFNV(pars);		std::cout << "FNV" << std::endl;						break;
 		default: d = NULL;
 		}
                 

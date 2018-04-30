@@ -284,17 +284,19 @@ int main(int argc, char** argv) {
 	// if (tests_utils::cronometre() < 0) return i; --i;
 	// if (tests_utils::disp_t    () < 0) return i; --i;
         
-        int type = diccionari::Murmur; //Murmur
-        int n = 100; 
-            int d = n;
-            int t = 2*n;
+		int type = diccionari::Murmur; //Murmur
+		int n = 2000; 
+			int d = n;
+			int t = 3;
         float p = 0.5f;
-        tests_diccionari::comparativa(1,d,t,p);
-        tests_diccionari::comparativa(type,d,t,p);
-		tests_diccionari::comparativa(type + 2, d, t, p);
-		tests_diccionari::comparativa(type+1,d,t,p);
+		tests_diccionari::comparativa(1,d,t,p);
+		tests_diccionari::comparativa(diccionari::Murmur,d,t,p);
+		tests_diccionari::comparativa(diccionari::DJB2	,d,t,p);
+		//tests_diccionari::comparativa(diccionari::SHA	,d,t,p);
+		//tests_diccionari::comparativa(diccionari::MD5, d, t, p);
+		tests_diccionari::comparativa(diccionari::xxHash, d, t, p);
+		tests_diccionari::comparativa(diccionari::FNV, d, t, p);
 
-        
 #ifdef _MSC_VER
 	cin.ignore();
 #endif

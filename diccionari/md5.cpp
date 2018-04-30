@@ -1,3 +1,5 @@
+#include "stdafx.h"
+#pragma warning(disable:4996)
 /* MD5
  converted to C++ class by Frank Thilo (thilo@unix-ag.org)
  for bzflag (http://www.bzflag.org)
@@ -32,7 +34,8 @@ documentation and/or software.
  
 /* interface header */
 #include "md5.h"
- 
+
+
 /* system implementation headers */
 #include <cstdio>
  
@@ -360,3 +363,4 @@ std::string md5(const std::string str)
  
     return md5.hexdigest();
 }
+
