@@ -99,6 +99,27 @@ namespace diccionari {
 				return false;
 			}
 
+			unsigned split(const std::vector<paraula>& lot, unsigned a, unsigned b) {
+				if (a == b) return a;
+				if (lot[b] >= key) return b;
+				if (lot[a] <= key) return a;
+
+				unsigned pivot = (a + b) / 2;
+				if (lot[pivot] < key)
+					return split(lot, pivot, b);
+				else
+					return split(lot, a, pivot);
+			}
+
+			void set_search(const std::vector<paraula>& lot, std::vector<bool>& trobats, unsigned a, unsigned b) {
+				unsigned pivot = split(lot, a, b); // key <= lot[pivot] < R->key
+				if (L != NULL)
+					L->set_search(lot, trobats, a, pivot);
+				if (R != NULL)
+					R->set_search(lot, trobats, a, pivot);
+				if (lot[pivot] == key) trobats[pivot] = true;
+			}
+
 			void secciona(paraula p, Node *& l, Node *& r) {
 				if (p < key) {
 					l = L;
@@ -183,9 +204,16 @@ namespace diccionari {
 			return tree->exists(p);
 		}
 
-		bool optimitza_lot() { return false; }
-		std::vector<bool> existeix_lot(std::vector<paraula>& lot) {
+		bool optimitza_lot() const { return true; }
+		std::vector<bool> existeix_lot(std::vector<paraula>& lot) const {
 			return tree->q_search(lot);
+		}
+
+		bool optimitza_lot_ordenat() const { return true; }
+		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
+			std::vector<bool> trobats = std::vector<bool>(lot.size(), false);
+			tree->set_search(lot, trobats, 0, lot.size()-1);
+			return trobats;
 		}
 
 		operator std::string() const { return (std::string)*tree; }
@@ -244,6 +272,15 @@ namespace diccionari {
 				else return true;
 			}
 			bool exists(paraula p) { return exists(p, priority(p)); }
+
+			operator std::string() {
+				if (L == NULL && R == NULL) return std::to_string(key);
+
+				std::string s = std::to_string(key) + "(";
+				s += ((L != NULL) ? (std::string)*L : "NULL") + " ";
+				s += ((R != NULL) ? (std::string)*R : "NULL") + ")";
+				return s;
+			}
 		};
 		Node *tree;
 
@@ -253,9 +290,9 @@ namespace diccionari {
 		Treap(const std::vector<paraula>& v) { std::vector<paraula> n = v; init(n); }
 		~Treap() { if (tree != NULL) delete tree; }
 
-		operator std::string() const = 0;
+		operator std::string() { return (std::string)*tree; }
 		
-		bool existeix(paraula p) { return tree->exists(p); }
+		bool existeix(paraula p) const { return tree->exists(p); }
 	};
 }
 
