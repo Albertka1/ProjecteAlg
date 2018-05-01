@@ -12,7 +12,7 @@
 #include "hex.h"
 #include "md5.h"
 #include "xxHash.hpp"
-#include "xxhashv264.h"
+#include "xxhashv232.h"
 #include "fnv.h"
 
 namespace diccionari {   
@@ -246,10 +246,10 @@ namespace diccionari {
 			// Insertar funció hash xxHash
 			std::string value = std::to_string(p);
 			const void* a = value.c_str();
-			xxh::hash_t<64> seed = 0x811C9DC5;
+			xxh::hash_t<32> seed = 0x811C9DC5;
 			/*paraula result = xxh::xxhash<64>(a, value.length(), t, xxh::endianness::bigEndian);
 			return result;*/
-			paraula result2 = XXHash64::hash(a, value.length()*sizeof(std::byte), 0x811C9DC5);
+			paraula result2 = XXHash32::hash(a, value.length()*sizeof(std::byte), 0x811C9DC5);
 			return result2;
 		}
 
@@ -318,25 +318,32 @@ namespace diccionari {
 	class HashSet: public Diccionari {
 	private:
 		std::vector<paraula> hashset;
-		int i = 500;
+		int i = 1;
+		int hashAddr;
+		enum HashAddressing {
+			LinealProbing=1,
+			DoubleHashing
+		};
 		void insertListLinearProbbing(const std::vector<paraula>& pars) {
 			for (paraula p : pars) {
 				int SETSIZE = hashset.size();
-				size_t key = (hashFunc(p)) % SETSIZE;
+				size_t key = (hashFuncFNV1a(p)) % SETSIZE;
 				if (hashset.at(key) == 0) hashset[key] = p;
 				else {
+					int probe;
+					if (key == SETSIZE-1) probe = 0;
+					else probe = key + i;
+
 					bool inserted = false;
-					// Mirem per tota la part del davant
-					for (int x = key + i; x < SETSIZE && !inserted ; x += i) {
-						if (hashset.at(x) == 0) { hashset[x] = p; inserted = true; }
+					// Iterem per tota la taula
+					while (probe != key) {
+						if (hashset[probe] == 0) { hashset[probe] = p; inserted = true; break; }
+						else {
+							++probe;
+							if (probe >= SETSIZE) probe = 0;
+						}
 					}
-
-					// Mirem per tota la part del darrera
-					for (int y = key - i; y >= 0 && !inserted; y -= i) {
-						if (hashset.at(y) == 0) { hashset[y] = p; inserted = true; }
-					}
-
-					// Si entrem aquí significa que no hi ha cap espai lliure -> augmentem tamany vector
+					// Table is full (if i == 1) or all spaces with i != 1 are full -> add space
 					if (!inserted) {
 						hashset.push_back(p);
 					}
@@ -344,30 +351,92 @@ namespace diccionari {
 			}
 		}
 
-	public:
-		HashSet(const std::vector<paraula>& pars) {
-			hashset = std::vector<paraula>(pars.size(),0);
-			insertListLinearProbbing(pars);
+		void insertListDoubleHashing(const std::vector<paraula>& pars) {
+			for (paraula p : pars) {
+				int SETSIZE = hashset.size();
+				size_t key1 = (hashFuncFNV1a(p)) % SETSIZE;
+				if (hashset.at(key1) == 0) hashset[key1] = p;
+				else {
+					size_t key2 = (hashFuncxxHash(p)) % SETSIZE;
+					int ii = i, maxIters = 10000;
+					
+					while (1) {
+						int probe = (key1 + ii * key2) % SETSIZE;
+						if (hashset[probe] == 0) {
+							hashset[probe] = p; break;
+						}
+						if (ii > maxIters) { hashset.push_back(p); ++SETSIZE;  break; }
+						ii += i;
+					}
+				}
+			}
 		}
 
-		size_t hashFunc(paraula& p) const {
+	public:
+		HashSet(const std::vector<paraula>& pars, int type) {
+			hashset = std::vector<paraula>(pars.size(),0);
+			hashAddr = type;
+			switch (type) {
+			case LinealProbing:	insertListLinearProbbing(pars); break;
+			case DoubleHashing:	insertListDoubleHashing(pars);	break;
+			default:			insertListLinearProbbing(pars);	break;
+			}
+		}
+
+		size_t hashFuncFNV1a(paraula& p) const {
 			std::string value = std::to_string(p);
 			unsigned int hash = FNV::fnv1a(p);
 			return hash;
 		}
+		size_t hashFuncxxHash(paraula& p) const {
+			std::string value = std::to_string(p);
+			const void* a = value.c_str();
+			paraula result2 = XXHash32::hash(a, value.length() * sizeof(std::byte), 0x811C9DC5);
+			return result2;
+		}
 		bool existeix(paraula p) const {
-			size_t key = HashSet::hashFunc(p) % hashset.size();
-			if (hashset[key] == p) return true;
-			int SETSIZE = hashset.size();
-
-			// Mirem per tota la part del davant
-			for (int x = key + i; x < SETSIZE; x += i) {
+			if (hashAddr == LinealProbing) {
+				size_t key = HashSet::hashFuncFNV1a(p) % hashset.size();
 				if (hashset[key] == p) return true;
+				else if (hashset[key] == 0) return false;
+
+				int probe;
+				if (key == hashset.size()-1) probe = 0;
+				else probe = key + i;
+
+				bool inserted = false;
+				// Iterem per tota la taula
+				while (probe != key) {
+					if (hashset[probe] == p) return true;
+					else if (hashset[probe] == 0) return false;
+					else {
+						++probe;
+						if (probe >= hashset.size()) probe = 0;
+					}
+				}
+				return false;
 			}
+			
+			if (hashAddr == DoubleHashing) {
+				int SETSIZE = hashset.size();
+				size_t key1 = (hashFuncFNV1a(p)) % SETSIZE;
+				if (hashset.at(key1) == p) return true;
+				else if (hashset.at(key1) == 0) return false;
+				else {
+					size_t key2 = (hashFuncxxHash(p)) % SETSIZE;
+					int ii = i, maxIters = 10000;
 
-			// Mirem per tota la part del darrera
-			for (int y = key - i; y >= 0; y -= i) {
-				if (hashset[key] == p) return true;
+					while (ii <= maxIters) {
+						int probe = (key1 + ii * key2) % SETSIZE;
+						if (hashset[probe] == p) return true;
+						if (hashset[probe] == 0) return false;
+						ii += i;
+					}
+					for (int i = SETSIZE - 1; i >= 0; --i) {
+						if (hashset[i] == p) return true;
+						if (hashset[i] == 0) return false;
+					}
+				}
 			}
 
 			return false;
@@ -380,6 +449,7 @@ namespace diccionari {
 			return s;
 		}
 		float getLoadFactor() override {
+			std::cout << "\tFinal size: " << hashset.size() << std::endl;
 			float count = 0;
 			for (int i = 0; i < hashset.size(); ++i) {
 				if (hashset[i] != 0) ++count;

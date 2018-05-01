@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include <algorithm>
 #include <ctime>
 #include <functional>
@@ -287,7 +285,7 @@ int main(int argc, char** argv) {
 		int type = diccionari::Murmur; //Murmur
 		int n = 5000; 
 			int d = n;
-			int t = 3;
+			int t = 2;
         float p = 0.5f;
 		tests_diccionari::comparativa(1,d,t,p);
 		tests_diccionari::comparativa(diccionari::Murmur,d,t,p);
