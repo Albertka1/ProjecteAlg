@@ -15,7 +15,8 @@ namespace diccionari {
 		// filtres
 		tBST, tTreap, // search_tree
 		// taules_hash
-         Murmur, SHA, DJB2, MD5, xxHash, FNV
+		Murmur, SHA, DJB2, MD5, xxHash, FNV,
+		LinearProbbing
 	};
 
 	Diccionari* factory(int type, const std::vector<paraula>& pars) {
@@ -39,6 +40,7 @@ namespace diccionari {
 		case MD5:		d = new HashTableMD5(pars);		std::cout << "MD5" << std::endl;						break;
 		case xxHash:	d = new HashTablexxHash(pars);	std::cout << "xxHash" << std::endl;						break;
 		case FNV:		d = new HashTableFNV(pars);		std::cout << "FNV" << std::endl;						break;
+		case LinearProbbing: d = new HashSet(pars);		std::cout << "Linear probbing" << std::endl;			break;
 		default: d = NULL;
 		}
                 

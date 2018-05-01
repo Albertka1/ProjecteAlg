@@ -66,7 +66,7 @@ namespace diccionari {
 			for (paraula p : lot) res.push_back(existeix(p));
 			return res;
 		}
-		
+		virtual float getLoadFactor() { return -1; }
 		virtual long long int count_comps() const { return -1; }
 		virtual void restart_count() {}
 	};

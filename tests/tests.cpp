@@ -177,7 +177,7 @@ namespace tests_diccionari {
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::microseconds>() << " ys" << endl;
 		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
 		dicc->restart_count();
-		
+		cout << "Load Factor: " << dicc->getLoadFactor() << endl;
 		cout << endl;
 		
 		auto cr2 = Cronometre<void>([dicc, &entrada, &trobats](void) {
@@ -285,17 +285,18 @@ int main(int argc, char** argv) {
 	// if (tests_utils::disp_t    () < 0) return i; --i;
         
 		int type = diccionari::Murmur; //Murmur
-		int n = 2000; 
+		int n = 5000; 
 			int d = n;
 			int t = 3;
         float p = 0.5f;
 		tests_diccionari::comparativa(1,d,t,p);
 		tests_diccionari::comparativa(diccionari::Murmur,d,t,p);
-		tests_diccionari::comparativa(diccionari::DJB2	,d,t,p);
+		//tests_diccionari::comparativa(diccionari::DJB2	,d,t,p);
 		//tests_diccionari::comparativa(diccionari::SHA	,d,t,p);
 		//tests_diccionari::comparativa(diccionari::MD5, d, t, p);
 		tests_diccionari::comparativa(diccionari::xxHash, d, t, p);
 		tests_diccionari::comparativa(diccionari::FNV, d, t, p);
+		tests_diccionari::comparativa(diccionari::LinearProbbing, d, t, p);
 
 #ifdef _MSC_VER
 	cin.ignore();

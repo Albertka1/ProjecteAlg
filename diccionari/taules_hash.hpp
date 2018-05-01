@@ -37,9 +37,10 @@ namespace diccionari {
                 s+=std::to_string(p); 
             return s;
         }
-        
+		float getLoadFactor() override {
+			return uset.load_factor();
+		}
     };
-    
     //-------------------------- SHA -------------------------//
     struct SHAHashfunc{
 		std::string hashToNumber(std::string s) const{
@@ -105,7 +106,6 @@ namespace diccionari {
         }
 
     };
-	
     class HashTableSHA : public Diccionari {
     private:
         std::unordered_set<paraula,SHAHashfunc> uset;
@@ -126,8 +126,10 @@ namespace diccionari {
                 s+=std::to_string(p); 
             return s;
         }
+		float getLoadFactor() override {
+			return uset.load_factor();
+		}
     };
-	
 	//-------------------------- DJB2 -------------------------//
 	struct DJB2Hashfunc {
 		size_t operator()(const paraula& p) const {
@@ -163,8 +165,10 @@ namespace diccionari {
 			return s;
 		}
 
+		float getLoadFactor() override {
+			return uset.load_factor();
+		}
 	};
-	
 	//-------------------------- MD5 -------------------------//
 	struct MD5Hashfunc {
 		std::string hashToNumber(std::string s) const {
@@ -232,8 +236,10 @@ namespace diccionari {
 				s += std::to_string(p);
 			return s;
 		}
+		float getLoadFactor() override {
+			return uset.load_factor();
+		}
 	};
-
 	//-------------------------- xxHash -------------------------//
 	struct xxHashHashfunc {
 		size_t operator()(const paraula& p) const {
@@ -268,7 +274,9 @@ namespace diccionari {
 				s += std::to_string(p);
 			return s;
 		}
-
+		float getLoadFactor() override {
+			return uset.load_factor();
+		}
 	};
 	//-------------------------- FNV1a -------------------------//
 	struct FNVHashfunc {
@@ -301,9 +309,87 @@ namespace diccionari {
 				s += std::to_string(p);
 			return s;
 		}
-
+		float getLoadFactor() override {
+			return uset.load_factor();
+		}
 	};
 
+	//-------------------------- Linear Addressing -------------------------//
+	class HashSet: public Diccionari {
+	private:
+		std::vector<paraula> hashset;
+		int i = 500;
+		void insertListLinearProbbing(const std::vector<paraula>& pars) {
+			for (paraula p : pars) {
+				int SETSIZE = hashset.size();
+				size_t key = (hashFunc(p)) % SETSIZE;
+				if (hashset.at(key) == 0) hashset[key] = p;
+				else {
+					bool inserted = false;
+					// Mirem per tota la part del davant
+					for (int x = key + i; x < SETSIZE && !inserted ; x += i) {
+						if (hashset.at(x) == 0) { hashset[x] = p; inserted = true; }
+					}
+
+					// Mirem per tota la part del darrera
+					for (int y = key - i; y >= 0 && !inserted; y -= i) {
+						if (hashset.at(y) == 0) { hashset[y] = p; inserted = true; }
+					}
+
+					// Si entrem aquí significa que no hi ha cap espai lliure -> augmentem tamany vector
+					if (!inserted) {
+						hashset.push_back(p);
+					}
+				}
+			}
+		}
+
+	public:
+		HashSet(const std::vector<paraula>& pars) {
+			hashset = std::vector<paraula>(pars.size(),0);
+			insertListLinearProbbing(pars);
+		}
+
+		size_t hashFunc(paraula& p) const {
+			std::string value = std::to_string(p);
+			unsigned int hash = FNV::fnv1a(p);
+			return hash;
+		}
+		bool existeix(paraula p) const {
+			size_t key = HashSet::hashFunc(p) % hashset.size();
+			if (hashset[key] == p) return true;
+			int SETSIZE = hashset.size();
+
+			// Mirem per tota la part del davant
+			for (int x = key + i; x < SETSIZE; x += i) {
+				if (hashset[key] == p) return true;
+			}
+
+			// Mirem per tota la part del darrera
+			for (int y = key - i; y >= 0; y -= i) {
+				if (hashset[key] == p) return true;
+			}
+
+			return false;
+		}
+
+		operator std::string() const {
+			std::string s = "";
+			for (paraula p : hashset)
+				s += std::to_string(p);
+			return s;
+		}
+		float getLoadFactor() override {
+			float count = 0;
+			for (int i = 0; i < hashset.size(); ++i) {
+				if (hashset[i] != 0) ++count;
+			}
+			return count / hashset.size();
+		}
+		
+
+
+	};
 }
 
 #endif
