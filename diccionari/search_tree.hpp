@@ -201,9 +201,7 @@ namespace diccionari {
 		}
 
 		bool optimitza_lot() const { return true; }
-		std::vector<bool> existeix_lot(std::vector<paraula>& lot) const {
-			return tree->q_search(lot);
-		}
+		std::vector<bool> existeix_lot(std::vector<paraula>& lot) const { return tree->q_search(lot); }
 
 		bool optimitza_lot_ordenat() const { return true; }
 		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
@@ -211,6 +209,7 @@ namespace diccionari {
 			tree->set_search(lot, trobats, 0, lot.size()-1);
 			return trobats;
 		}
+	
 	};
 
 	class Treap : public Diccionari {
@@ -267,6 +266,76 @@ namespace diccionari {
 			}
 			bool exists(paraula p) { return exists(p, priority(p)); }
 
+			unsigned split(const std::vector<paraula>& lot, unsigned a, unsigned b) {
+				if (a == b) return a;
+				if (lot[b] >= key) return b;
+				if (lot[a] <= key) return a;
+
+				unsigned pivot = (a + b) / 2;
+				if (lot[pivot] < key)
+					return split(lot, pivot, b);
+				else
+					return split(lot, a, pivot);
+			}
+
+			void set_search(const std::vector<paraula>& lot, std::vector<bool>& trobats, unsigned a, unsigned b) {
+				unsigned pivot = split(lot, a, b); // key <= lot[pivot] < R->key
+				if (L != NULL)
+					L->set_search(lot, trobats, a, pivot);
+				if (R != NULL)
+					R->set_search(lot, trobats, a, pivot);
+				if (lot[pivot] == key) trobats[pivot] = true;
+			}
+
+			void secciona(paraula p, Node *& l, Node *& r) {
+				if (p < key) {
+					l = L;
+					r = this;
+					if (L != NULL) L->secciona(p, l, r);
+				}
+				else if (p > key) {
+					l = this;
+					r = R;
+					if (R != NULL) R->secciona(p, l, r);
+				}
+				else {
+					l = this; r = this;
+				}
+			}
+
+			std::vector<bool> q_search(std::vector<paraula>& lot) {
+				paraula pivot = lot[0];
+				std::vector<bool> trobats = std::vector<bool>();
+				std::vector<paraula> vLeft = std::vector<paraula>();
+				std::vector<paraula> vRight = std::vector<paraula>();
+
+				trobats.reserve(lot.size());
+
+				for (unsigned i = 0; i < lot.size(); ++i) {
+					if (lot[i] < pivot) vLeft.push_back(lot[i]);
+					else vRight.push_back(lot[i]);
+				}
+
+				Node *nLeft = this, *nRight = this;
+				secciona(pivot, nLeft, nRight);
+
+				if (nLeft != NULL && vLeft.size() > 0)
+					trobats = nLeft->q_search(vLeft);
+
+				trobats.push_back(nLeft == nRight);
+
+				if (nRight != NULL && vRight.size() > 0) {
+					std::vector<bool> tmp = nRight->q_search(vRight);
+					trobats.insert(trobats.end(), tmp.begin(), tmp.end());
+				}
+
+				lot = vLeft;
+				lot.push_back(pivot);
+				lot.insert(lot.end(), vRight.begin(), vRight.end());
+
+				return trobats;
+			}
+
 			operator std::string() {
 				if (L == NULL && R == NULL) return std::to_string(key);
 
@@ -288,8 +357,15 @@ namespace diccionari {
 
 		bool existeix(paraula p) const { return tree->exists(p); }
 
-		bool optimitza_lot() const { return false; }
-		bool optimitza_lot_ordenat() const { return false; }
+		bool optimitza_lot() const { return true; }
+		std::vector<bool> existeix_lot(std::vector<paraula>& lot) const { return tree->q_search(lot); }
+
+		bool optimitza_lot_ordenat() const { return true; }
+		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
+			std::vector<bool> trobats = std::vector<bool>(lot.size(), false);
+			tree->set_search(lot, trobats, 0, lot.size() - 1);
+			return trobats;
+		}
 
 	};
 }
