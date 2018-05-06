@@ -28,10 +28,10 @@ namespace diccionari {
 			unsigned int k= 3;   //numero de hash per paraula
 			unsigned int m;   //tamany del vector bits
 			
-			void setZeros() { bits = std::vector<bool>(m); }
+			void setFalses() { bits = std::vector<bool>(m,false); }
 				
-			int Stupid_hash(int k, paraula p) const {
-				int sum=0;
+			unsigned int Stupid_hash(int k, paraula p) const {
+				unsigned int sum=0;
 				while (p > 0) {
 					sum += p%10;
 					p /=10;
@@ -43,7 +43,7 @@ namespace diccionari {
 				
 			unsigned long Murmur_hash(int k, paraula p) const {
 				uint64_t seed = (uint64_t)k;
-				uint64_t *hash_otpt[1];
+				uint64_t *hash_otpt[2];
 				
 				//cout << "p: "<< p << endl;
 				
@@ -72,10 +72,9 @@ namespace diccionari {
 				return (unsigned long)res%m;
 			}
 				
-			void Simple_hash(const std::vector<paraula>& v, int k) {
-				//Murmur_hash(k, v[0]);
+			void Simple(const std::vector<paraula>& v, int k) {
+				int kk = k<<2;
 				for (paraula p: v) {
-					int kk = k<<2;
 					unsigned long hash = Murmur_hash(kk,p);
 					cout << "paraula : " << p << ", hash: " << hash << endl; 
 				 	bits[hash] = true;
@@ -86,15 +85,10 @@ namespace diccionari {
 			SimpleBloom (const std::vector<paraula>& v) : Diccionari() { 
 				pars = std::vector<paraula>(v);
 				m = 2*k*v.size();   //m > k*n
-				cout << "el numero N es: " << v.size() << endl;
-				cout << endl;
-				cout << "el numero M es: " << m << endl;
-				cout << endl;
-				setZeros();
-				for (int i = 0; i < k; i++) {
-					cout << endl; 
-					Simple_hash(v, i); 
-				}
+				cout << "el numero N es: " << v.size() << endl << endl;
+				cout << "el numero M es: " << m << endl << endl;
+				setFalses();
+				for (int i = 0; i < k; i++) Simple(v, i);
 			}
 			
 			macro_stringCast
@@ -110,50 +104,92 @@ namespace diccionari {
 			}
 			
 	};
-	//falta copypaste a counting
+
 	class CountingBloom : public Diccionari {
 		private:
 			std::vector<paraula> pars;
-            std::vector<uint8_t> counters;
+            std::vector<uint8_t> counters; //valores [0,255]
 
             int k=1;   //numero de hash per paraula
             int m;   //tamany del vector bits
                         
             uint8_t Stupid_hash(int k, paraula p) const {
-				uint8_t return_value = 0;
-				
-				return return_value;
+				uint8_t sum=0
+				while (p > 0) {
+					sum += p%10;
+					p /=10;
+				}
+				sum = sum<<k-1;
+				return sum % m; 
             }
+            
+            void setZeros() { counters = std::vector<bool>(m, 0); }
+            
+            unsigned long Murmur_hash(int k, paraula p) const {
+				uint64_t seed = (uint64_t)k;
+				uint64_t *hash_otpt[2];
+				const unsigned long long *key = &p;
+				
+				//void MurmurHash3_x86_32  ( const void * key, int len, uint32_t seed, void * out );
+				//void MurmurHash3_x64_128 ( const void * key, int len, uint32_t seed, void * out );
+				MurmurHash3_x64_128(key, sizeof(paraula), seed, hash_otpt);
+				//MurmurHash3_x86_32(key2, sizeof(unsigned char), seed, hash_otpt);
+				
+				unsigned long long int res;
+				stringstream ss;
+				ss << hash_otpt[0];
+				ss >> hex >>res;
+								
+				return (unsigned long)res%m;
+			}
                         
-            void Counting_hash(const std::vector<paraula>& v, const int k) {
+            void Counting(const std::vector<paraula>& v, const int k) {
+				int kk = k<<2;
 				for (paraula p: v) {
-					counters[Stupid_hash(k,p)]++;
+					unsigned long hash = Murmur_hash(kk,p);
+					counters[hash]++;
                 }
             }
 		public:
 			CountingBloom(const std::vector<paraula>& v) : Diccionari() { 
 				pars = std::vector<paraula>(v); 
-                //setCounter();
+                setZeros();
+                for (int i = 0; i < k; i++) Couting(v, i); 
             }
 			
 			macro_stringCast
 			bool existeix(paraula p) const{
 				bool conte = true;
                 for (int i = 0; i < k; i++){
-					if (counters[Stupid_hash(k,p)] == 0) conte = false; 
+					int ii = i<<2;
+					if (counters[Murmur_hash(ii,p)] == 0) conte = false; 
                 }
                 return conte;
             }
                         
             bool eliminar(paraula p) {
 				for (int i = 0; i < k; i++) {
-					counters[Stupid_hash(k,p)]--;
+					int ii = i<<2;
+					counters[Murmur_hash(ii,p)]--;
 				}
 			}
 			
 	};
-        
-        //Implementar quotients filters
+	
+	class Quotient : public Diccionari {
+		private:
+		
+		public:
+			Quotient(const std::vector<paraula>& v) : Diccionari() {
+				//cosas Peter
+			}
+			
+			macro_stringCast
+			bool existeix(paraula p) const{
+				bool conte = true;
+
+                return conte;
+            }
 
 }
 
