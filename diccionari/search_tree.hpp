@@ -23,8 +23,8 @@ namespace diccionari {
 			Node *L;
 			Node *R;
 
-			Node() { init(); }
-			Node(paraula p) { init(); key = p; }
+			Node() {}
+			Node(paraula p) { key = p; }
 			~Node() {
 				if (L != NULL) delete L;
 				if (R != NULL) delete R;
@@ -177,12 +177,6 @@ namespace diccionari {
 				s += ((R != NULL) ? (std::string)*R : "NULL") + ")";
 				return s;
 			}
-
-		private:
-			void init() {
-				L = NULL;
-				R = NULL;
-			}
 		};
 		Node *tree;
 
@@ -198,6 +192,8 @@ namespace diccionari {
 			}
 		}
 		~BinarySearchTree() { if (tree != NULL) delete tree; }
+
+		operator std::string() const { return (std::string)*tree; }
 
 		bool existeix(paraula p) const {
 			if (tree == NULL) return false;
@@ -215,8 +211,6 @@ namespace diccionari {
 			tree->set_search(lot, trobats, 0, lot.size()-1);
 			return trobats;
 		}
-
-		operator std::string() const { return (std::string)*tree; }
 	};
 
 	class Treap : public Diccionari {
@@ -290,9 +284,13 @@ namespace diccionari {
 		Treap(const std::vector<paraula>& v) { std::vector<paraula> n = v; init(n); }
 		~Treap() { if (tree != NULL) delete tree; }
 
-		operator std::string() { return (std::string)*tree; }
-		
+		operator std::string() const { return (std::string)*tree; }
+
 		bool existeix(paraula p) const { return tree->exists(p); }
+
+		bool optimitza_lot() const { return false; }
+		bool optimitza_lot_ordenat() const { return false; }
+
 	};
 }
 
