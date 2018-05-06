@@ -1,6 +1,7 @@
 #ifndef diccionari_taules_hash_hpp
 #define diccionari_taules_hash_hpp
 
+#pragma warning( disable : 4244) // Passar de size_t a paraula i viceversa
 
 #include <unordered_set>
 #include <vector>
@@ -320,6 +321,7 @@ namespace diccionari {
 		std::vector<paraula> hashset;
 		int i = 1;
 		int hashAddr;
+		int nCols = 0;
 		enum HashAddressing {
 			LinealProbing=1,
 			DoubleHashing
@@ -330,6 +332,7 @@ namespace diccionari {
 				size_t key = (hashFuncFNV1a(p)) % SETSIZE;
 				if (hashset.at(key) == 0) hashset[key] = p;
 				else {
+					++nCols; // Collision
 					int probe;
 					if (key == SETSIZE-1) probe = 0;
 					else probe = key + i;
@@ -340,6 +343,7 @@ namespace diccionari {
 						if (hashset[probe] == 0) { hashset[probe] = p; inserted = true; break; }
 						else {
 							++probe;
+							++nCols;
 							if (probe >= SETSIZE) probe = 0;
 						}
 					}
@@ -357,6 +361,7 @@ namespace diccionari {
 				size_t key1 = (hashFuncFNV1a(p)) % SETSIZE;
 				if (hashset.at(key1) == 0) hashset[key1] = p;
 				else {
+					++nCols; // Collision
 					size_t key2 = (hashFuncxxHash(p)) % SETSIZE;
 					int ii = i, maxIters = 10000;
 					
@@ -365,6 +370,7 @@ namespace diccionari {
 						if (hashset[probe] == 0) {
 							hashset[probe] = p; break;
 						}
+						++nCols; // Collision made
 						if (ii > maxIters) { hashset.push_back(p); ++SETSIZE;  break; }
 						ii += i;
 					}
@@ -411,7 +417,7 @@ namespace diccionari {
 					else if (hashset[probe] == 0) return false;
 					else {
 						++probe;
-						if (probe >= hashset.size()) probe = 0;
+						if (probe >= (int)hashset.size()) probe = 0;
 					}
 				}
 				return false;
@@ -449,9 +455,9 @@ namespace diccionari {
 			return s;
 		}
 		float getLoadFactor() override {
-			std::cout << "\tFinal size: " << hashset.size() << std::endl;
+			std::cout << "\tFinal size: " << hashset.size() << "\n\t N. Collisions: " << nCols << std::endl;
 			float count = 0;
-			for (int i = 0; i < hashset.size(); ++i) {
+			for (int i = 0; i < (int)hashset.size(); ++i) {
 				if (hashset[i] != 0) ++count;
 			}
 			return count / hashset.size();
