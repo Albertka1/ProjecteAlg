@@ -5,13 +5,13 @@
 #include <string>
 #include <vector>
 
-#include "diccionari.hpp"
-#include "factory.hpp"
-#include "generador.hpp"
-#include "cronometre.hpp"
-#include "display_tabular.hpp"
-#include "file_io.hpp"
-#include "string_cast.hpp"
+#include "diccionari/diccionari.hpp"
+#include "diccionari/factory.hpp"
+#include "diccionari/generador.hpp"
+#include "utils/cronometre.hpp"
+#include "utils/display_tabular.hpp"
+#include "utils/file_io.hpp"
+#include "utils/string_cast.hpp"
 
 
 

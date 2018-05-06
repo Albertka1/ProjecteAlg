@@ -7,13 +7,13 @@
 
 #include "diccionari.hpp"
 
-#include "sha.h"
-#include "filters.h"
-#include "hex.h"
-#include "md5.h"
+#include "llibreries/sha.h"
+#include "llibreries/filters.h"
+#include "llibreries/hex.h"
+#include "md5.hpp"
 #include "xxHash.hpp"
-#include "xxhashv232.h"
-#include "fnv.h"
+#include "xxhashv232.hpp"
+#include "fnv.hpp"
 
 namespace diccionari {   
     // ------------------------- DEFAULT -------------------------------------//
