@@ -5,7 +5,7 @@
 
 #include "diccionari.hpp"
 #include "contenidors_stl.hpp"
-#include "filtres.hpp"
+//#include "filtres.hpp"
 #include "search_tree.hpp"
 #include "taules_hash.hpp"
 
