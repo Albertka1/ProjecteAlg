@@ -5,12 +5,14 @@
 
 #include <unordered_set>
 #include <vector>
+#include <list>
 
 #include "diccionari.hpp"
+#include <algorithm>
 
-#include "llibreries/sha.h"
-#include "llibreries/filters.h"
-#include "llibreries/hex.h"
+#include "sha.h"
+#include "filters.h"
+#include "hex.h"
 #include "md5.hpp"
 #include "xxHash.hpp"
 #include "xxhashv232.hpp"
@@ -315,13 +317,15 @@ namespace diccionari {
 		}
 	};
 
-	//-------------------------- Linear Addressing -------------------------//
+	//-------------------------- Grill Hashing -------------------------//
+	static long long int nSearch;
 	class HashSet: public Diccionari {
 	private:
 		std::vector<paraula> hashset;
 		int i = 1;
 		int hashAddr;
 		int nCols = 0;
+		int nComps = 0;
 		enum HashAddressing {
 			LinealProbing=1,
 			DoubleHashing
@@ -329,21 +333,23 @@ namespace diccionari {
 		void insertListLinearProbbing(const std::vector<paraula>& pars) {
 			for (paraula p : pars) {
 				int SETSIZE = hashset.size();
-				size_t key = (hashFuncFNV1a(p)) % SETSIZE;
+				size_t key = (hashFuncFNV1a(p)) % SETSIZE; ++nComps;
 				if (hashset.at(key) == 0) hashset[key] = p;
 				else {
 					++nCols; // Collision
-					int probe;
+					int probe; ++nComps;
 					if (key == SETSIZE-1) probe = 0;
 					else probe = key + i;
 
 					bool inserted = false;
 					// Iterem per tota la taula
 					while (probe != key) {
+						++nComps;
 						if (hashset[probe] == 0) { hashset[probe] = p; inserted = true; break; }
 						else {
 							++probe;
 							++nCols;
+							++nComps;
 							if (probe >= SETSIZE) probe = 0;
 						}
 					}
@@ -358,7 +364,7 @@ namespace diccionari {
 		void insertListDoubleHashing(const std::vector<paraula>& pars) {
 			for (paraula p : pars) {
 				int SETSIZE = hashset.size();
-				size_t key1 = (hashFuncFNV1a(p)) % SETSIZE;
+				size_t key1 = (hashFuncFNV1a(p)) % SETSIZE; ++nComps;
 				if (hashset.at(key1) == 0) hashset[key1] = p;
 				else {
 					++nCols; // Collision
@@ -367,10 +373,12 @@ namespace diccionari {
 					
 					while (1) {
 						int probe = (key1 + ii * key2) % SETSIZE;
+						++nComps;
 						if (hashset[probe] == 0) {
 							hashset[probe] = p; break;
 						}
 						++nCols; // Collision made
+						++nComps;
 						if (ii > maxIters) { hashset.push_back(p); ++SETSIZE;  break; }
 						ii += i;
 					}
@@ -387,6 +395,7 @@ namespace diccionari {
 			case DoubleHashing:	insertListDoubleHashing(pars);	break;
 			default:			insertListLinearProbbing(pars);	break;
 			}
+			std::cout << "N. Comparations at creation: " << nComps << std::endl;
 		}
 
 		size_t hashFuncFNV1a(paraula& p) const {
@@ -400,24 +409,26 @@ namespace diccionari {
 			paraula result2 = XXHash32::hash(a, value.length() * sizeof(std::byte), 0x811C9DC5);
 			return result2;
 		}
-		bool existeix(paraula p) const {
+		bool existeix(paraula p) const{
 			if (hashAddr == LinealProbing) {
 				size_t key = HashSet::hashFuncFNV1a(p) % hashset.size();
-				if (hashset[key] == p) return true;
-				else if (hashset[key] == 0) return false;
+				++nSearch; if (hashset[key] == p) return true;
+				++nSearch; if (hashset[key] == 0) return false;
 
 				int probe;
+				++nSearch;
 				if (key == hashset.size()-1) probe = 0;
 				else probe = key + i;
 
 				bool inserted = false;
 				// Iterem per tota la taula
 				while (probe != key) {
-					if (hashset[probe] == p) return true;
-					else if (hashset[probe] == 0) return false;
+					++nSearch;
+					++nSearch; if (hashset[probe] == p) return true;
+					++nSearch; if (hashset[probe] == 0) return false;
 					else {
 						++probe;
-						if (probe >= (int)hashset.size()) probe = 0;
+						++nSearch; if (probe >= (int)hashset.size()) probe = 0;
 					}
 				}
 				return false;
@@ -426,21 +437,22 @@ namespace diccionari {
 			if (hashAddr == DoubleHashing) {
 				int SETSIZE = hashset.size();
 				size_t key1 = (hashFuncFNV1a(p)) % SETSIZE;
-				if (hashset.at(key1) == p) return true;
-				else if (hashset.at(key1) == 0) return false;
+				++nSearch; if (hashset.at(key1) == p) return true;
+				++nSearch; if (hashset.at(key1) == 0) return false;
 				else {
 					size_t key2 = (hashFuncxxHash(p)) % SETSIZE;
 					int ii = i, maxIters = 10000;
 
 					while (ii <= maxIters) {
+						++nSearch;
 						int probe = (key1 + ii * key2) % SETSIZE;
-						if (hashset[probe] == p) return true;
-						if (hashset[probe] == 0) return false;
+						++nSearch; if (hashset[probe] == p) return true;
+						++nSearch; if (hashset[probe] == 0) return false;
 						ii += i;
 					}
-					for (int i = SETSIZE - 1; i >= 0; --i) {
-						if (hashset[i] == p) return true;
-						if (hashset[i] == 0) return false;
+					for (int i = SETSIZE - 1; i >= 0; --i) { //If maxIters -> bucle -> it will be in the last position -> start searching from there
+						++nSearch; if (hashset[i] == p) return true;
+						++nSearch; if (hashset[i] == 0) return false;
 					}
 				}
 			}
@@ -455,14 +467,82 @@ namespace diccionari {
 			return s;
 		}
 		float getLoadFactor() override {
-			std::cout << "\tFinal size: " << hashset.size() << "\n\t N. Collisions: " << nCols << std::endl;
+			std::cout << "Final size: " << hashset.size() << "\n\tN. Collisions: " << nCols << std::endl;
 			float count = 0;
 			for (int i = 0; i < (int)hashset.size(); ++i) {
 				if (hashset[i] != 0) ++count;
 			}
 			return count / hashset.size();
 		}
-		
+
+		long long int count_comps() const override { return nSearch; }
+		void restart_count() override { nSearch = 0; }
+
+
+	};
+
+	//-------------------------- Separate Chaining -------------------------//
+	class HashSetSeparateChaining : public Diccionari {
+	private:
+		std::vector< std::list<paraula> > hashset;
+		int nCols = 0;
+		int nComps = 0;
+		void insertList(const std::vector<paraula>& pars) {
+			for (paraula p : pars) {
+				int SETSIZE = hashset.size();
+				size_t key = (hashFuncFNV1a(p)) % SETSIZE;
+				std::list<paraula> l = hashset[key];
+				++nComps; if (l.empty()) hashset[key].push_back(p);
+				else {
+					++nCols;
+					hashset[key].push_back(p);
+				}
+			}
+			std::cout << "N. Comparations at creation: " << nComps << std::endl;
+		}
+
+	public:
+		HashSetSeparateChaining(const std::vector<paraula>& pars) {
+			hashset = std::vector< std::list<paraula> >(pars.size());
+			insertList(pars);
+		}
+
+		size_t hashFuncFNV1a(paraula& p) const {
+			std::string value = std::to_string(p);
+			unsigned int hash = FNV::fnv1a(p);
+			return hash;
+		}
+
+		bool existeix(paraula p) const {
+			size_t key = hashFuncFNV1a(p) % hashset.size();
+			std::list<paraula> l = hashset[key];
+			
+			for (std::list<paraula>::iterator it = l.begin(); it != l.end(); ++it) {
+				++nSearch; if (*(it) == p) return true;
+			}
+	
+			return false;
+		}
+
+		operator std::string() const {
+			std::string s = "";
+			for (std::list<paraula> l : hashset)
+				for (std::list<paraula>::iterator it = l.begin(); it != l.end(); ++it) {
+					s += std::to_string(*(it));
+				}
+			return s;
+		}
+		float getLoadFactor() override {
+			std::cout << "Final size: " << hashset.size() << "\n\tN. Collisions: " << nCols << std::endl;
+			float count = 0;
+			for (int i = 0; i < (int)hashset.size(); ++i) {
+				if (!hashset[i].empty()) ++count;
+			}
+			return count / hashset.size();
+		}
+
+		long long int count_comps() const override { return nSearch; }
+		void restart_count() override { nSearch = 0; }
 
 
 	};

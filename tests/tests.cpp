@@ -173,7 +173,7 @@ namespace tests_diccionari {
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::milliseconds>() << " ms" << endl;
 		else
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::microseconds>() << " ys" << endl;
-		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
+		cout.imbue(locale("")); cout << "Num Comparacions cerca:\t" << dicc->count_comps() << endl;
 		dicc->restart_count();
 		cout << "Load Factor: " << dicc->getLoadFactor() << endl;
 		cout << endl;
@@ -295,6 +295,7 @@ int main(int argc, char** argv) {
 		tests_diccionari::comparativa(diccionari::xxHash, d, t, p);
 		tests_diccionari::comparativa(diccionari::FNV, d, t, p);
 		tests_diccionari::comparativa(diccionari::LinearProbbing, d, t, p);
+		tests_diccionari::comparativa(diccionari::SeparateChaining, d, t, p);
 
 #ifdef _MSC_VER
 	cin.ignore();
