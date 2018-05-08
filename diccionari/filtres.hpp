@@ -89,7 +89,7 @@ namespace diccionari {
 		public:
 			SimpleBloom (const std::vector<paraula>& v) : Diccionari() { 
 				pars = std::vector<paraula>(v);
-				m = 4*k*v.size();   //m > k*n
+				m = (k*v.size())/log(2);   //m > k*n   (round)
 				//cout << "el numero N es: " << v.size() << endl << endl;
 				//cout << "el numero M es: " << m << endl << endl;
 				setFalses();
@@ -108,7 +108,7 @@ namespace diccionari {
 				}
 				return conte_bool; 
 			}
-			
+	//k*n*4= 3*20*4 = 240 = m;            k = (m/n)*ln(2) = (240/20)*ln(2)		
 	};
 
 	class CountingBloom : public Diccionari { //rapido, permite deletes, coste espacial alto
@@ -119,8 +119,8 @@ namespace diccionari {
             int k=1;   //numero de hash per paraula
             int m;   //tamany del vector bits
                         
-            uint8_t Stupid_hash(int k, paraula p) const {
-				uint8_t sum=0;
+            unsigned long Stupid_hash(int k, paraula p) const {
+				unsigned long sum=0;
 				while (p > 0) {
 					sum += p%10;
 					p /=10;
@@ -157,7 +157,8 @@ namespace diccionari {
             }
 		public:
 			CountingBloom(const std::vector<paraula>& v) : Diccionari() { 
-				pars = std::vector<paraula>(v); 
+				pars = std::vector<paraula>(v);
+				m = (k*v.size())/log(2);  
                 setZeros();
                 for (int i = 0; i < k; i++) Counting(v, i); 
             }
@@ -184,7 +185,7 @@ namespace diccionari {
 	class Quotient : public Diccionari { //deberia ser lento (permite deletes, coste espacial bajo)
 		private:
 			struct quotient_slot {
-				quotient_slot(): fr(0), is_occupied(false), is_continuation(false), is_shifted(false){}
+				quotient_slot(): fr(-1), is_occupied(false), is_continuation(false), is_shifted(false){}
 				unsigned long fr; //remainder
 				bool is_occupied;
 				bool is_continuation;
@@ -194,7 +195,8 @@ namespace diccionari {
 			std::vector<paraula> pars;
 			std::vector<fr> quotient;
 			unsigned int m;   //tamany del hash table
-			unsigned int p = 8;
+			unsigned int p = 32;  //fingersprint size
+			unsigned int r = 24;  //least significants bits 
 			 
 			//usare murmurhash (unicamente)
 			
@@ -225,6 +227,15 @@ namespace diccionari {
 				return (unsigned long)res%m;
 			}
 			
+			int search_cluster(const int index) {
+				int i = index;
+				bool found = false;
+				while (!found and i < m.size()) {
+					if (quotient[i].fr == -1) found = true; //busquem espai buit
+					i++;
+				}
+				return i-1;
+			}
 			
 			void add_element(const unsigned long f) {
 				int mod = pow(2.0, r)
@@ -248,8 +259,14 @@ namespace diccionari {
 						quotient[qindex+1].is_continuation = true;
 						quotient[qindex+1].is_
 					}
-					else if (canonical.fr >= remainder) {
-						//cosas
+					else if (canonical.fr > remainder) {
+						int last_index = search_cluster(qindex);
+						for (int i = last_index; i >= qindex; i--) {
+							quotient[i+1].fr = quotient[i].fr;
+							quotient[i+1].is_shifted = true;
+						}
+						quotient[qindex].is_occupied = true;
+						quotient[qindex].fr = remainder;
 					}
 				}
 				else if (!)
@@ -258,7 +275,6 @@ namespace diccionari {
 			
 		public:
 			Quotient(const std::vector<paraula>& v) : Diccionari() {
-				unsigned int r = 4;
 				unsigned int q = p-r;
 				pars = std::vector<paraula>(v);
 				m = (unsigned int)pow(2.0,q);
@@ -272,6 +288,8 @@ namespace diccionari {
 			macro_stringCast
 			bool existeix(paraula p) const{
 				bool conte = true;
+				unsigned long f = Murmur_hash(p);
+				
                 return conte;
             }
 	};
