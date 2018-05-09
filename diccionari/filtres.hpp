@@ -45,7 +45,7 @@ namespace diccionari {
 			unsigned long long Murmur_hash(int k, paraula p) const {
 				//cout << endl << "MURMURHASH" << endl;
 				uint32_t seed = (uint32_t)k;
-				uint32_t *hash_otpt[2] = {0};
+				uint32_t *hash_otpt[1] = {0};
 				
 				//cout << "p: "<< p << endl;
 				
@@ -104,7 +104,7 @@ namespace diccionari {
 					unsigned int ii = i<<2;
 					//unsigned long long hash = Murmur_hash(ii,p);
 					//cout << "paraula : " << p << ", seed:"<< ii << ", hash: " << hash << endl; 
-					if (bits[Murmur_hash(ii,p)] == false) conte_bool = false;
+					if (bits[Murmur_hash(ii,p)] == false) conte_bool = false; break;
 				}
 				return conte_bool; 
 			}
@@ -133,7 +133,7 @@ namespace diccionari {
             
             unsigned long long Murmur_hash(int k, paraula p) const {
 				uint32_t seed = (uint32_t)k;
-				uint32_t *hash_otpt[2] = {0};
+				uint32_t *hash_otpt[1] = {0};
 				const unsigned long long *key = &p;
 				
 				//void MurmurHash3_x86_32  ( const void * key, int len, uint32_t seed, void * out );
@@ -168,7 +168,7 @@ namespace diccionari {
 				bool conte = true;
                 for (int i = 0; i < k; i++){
 					int ii = i<<2;
-					if (counters[Murmur_hash(ii,p)] == 0) conte = false; 
+					if (counters[Murmur_hash(ii,p)] == 0) conte = false; break;
                 }
                 return conte;
             }
@@ -181,7 +181,7 @@ namespace diccionari {
 			}
 			
 	};
-	
+	/*
 	class Quotient : public Diccionari { //deberia ser lento (permite deletes, coste espacial bajo)
 		private:
 			struct quotient_slot {
@@ -274,7 +274,7 @@ namespace diccionari {
 			
 			
 		public:
-			Quotient(const std::vector<paraula>& v) : Diccionari() {
+			/*Quotient(const std::vector<paraula>& v) : Diccionari() {
 				unsigned int q = p-r;
 				pars = std::vector<paraula>(v);
 				m = (unsigned int)pow(2.0,q);
@@ -292,7 +292,7 @@ namespace diccionari {
 				
                 return conte;
             }
-	};
+	};*/
 
 }
 
