@@ -26,7 +26,9 @@ namespace diccionari {
 			std::vector<paraula> pars;
 			std::vector<bool> bits;
 			//int n;  //tamany del vector pars
-			unsigned int k= 3;   //numero de hash per paraula
+			float p = 0.001; // acceptable false positive rating (0.001 -> 0.1%)
+			unsigned int n;   //numero de elementos
+			unsigned int k;   //numero de hash per paraula
 			unsigned int m;   //tamany del vector bits
 			
 			void setFalses() { bits = std::vector<bool>(m,false); }
@@ -43,7 +45,7 @@ namespace diccionari {
 				
 				
 			unsigned long long Murmur_hash(int k, paraula p) const {
-				//cout << endl << "MURMURHASH" << endl;
+				//cout << "MURMURHASH" << endl;
 				uint32_t seed = (uint32_t)k;
 				uint32_t *hash_otpt[1] = {0};
 				
@@ -89,26 +91,35 @@ namespace diccionari {
 		public:
 			SimpleBloom (const std::vector<paraula>& v) : Diccionari() { 
 				pars = std::vector<paraula>(v);
-				m = (k*v.size())/log(2);   //m > k*n   (round)
-				//cout << "el numero N es: " << v.size() << endl << endl;
-				//cout << "el numero M es: " << m << endl << endl;
+				n = v.size();
+				m = round(-(n*log(p)) / (log(2)*log(2)));  //m > k*n 
+				k = ceil(m/n*log(2));  //ceil
+				cout << "el numero N es: " << n << endl << endl;
+				cout << "el numero M es: " << m << endl << endl;
+				cout << "el numero K es: " << k << endl << endl;
 				setFalses();
 				for (int i = 0; i < k; i++) Simple(v, i);
 			}
 			
 			macro_stringCast
-			bool existeix(paraula p) const { 
+			bool existeix(paraula p) const {
+				//cout << "Esta el element " << p << "?." << endl; 
 				bool conte_bool = true;
-				//cout << endl;
+				//
 				for (int i = 0; i < k; i++){
 					unsigned int ii = i<<2;
 					//unsigned long long hash = Murmur_hash(ii,p);
 					//cout << "paraula : " << p << ", seed:"<< ii << ", hash: " << hash << endl; 
-					if (bits[Murmur_hash(ii,p)] == false) conte_bool = false; break;
+					if (bits[Murmur_hash(ii,p)] == false) {
+						conte_bool = false; 
+						break;
+					}
 				}
+				//if (conte_bool) cout << "Si que esta" << endl;
+				//else cout << "No esta" << endl;
+				//cout << endl;
 				return conte_bool; 
 			}
-	//k*n*4= 3*20*4 = 240 = m;            k = (m/n)*ln(2) = (240/20)*ln(2)		
 	};
 
 	class CountingBloom : public Diccionari { //rapido, permite deletes, coste espacial alto
@@ -116,8 +127,10 @@ namespace diccionari {
 			std::vector<paraula> pars;
             std::vector<uint8_t> counters; //valores [0,255]
 
-            int k=1;   //numero de hash per paraula
-            int m;   //tamany del vector bits
+            float p = 0.001; // acceptable false positive rating (0.001 -> 0.1%)
+			unsigned int n;   //numero de elementos
+			unsigned int k;   //numero de hash per paraula
+			unsigned int m;   //tamany del vector bits
                         
             unsigned long Stupid_hash(int k, paraula p) const {
 				unsigned long sum=0;
@@ -133,7 +146,7 @@ namespace diccionari {
             
             unsigned long long Murmur_hash(int k, paraula p) const {
 				uint32_t seed = (uint32_t)k;
-				uint32_t *hash_otpt[1] = {0};
+				uint32_t *hash_otpt[2] = {0};
 				const unsigned long long *key = &p;
 				
 				//void MurmurHash3_x86_32  ( const void * key, int len, uint32_t seed, void * out );
@@ -158,7 +171,9 @@ namespace diccionari {
 		public:
 			CountingBloom(const std::vector<paraula>& v) : Diccionari() { 
 				pars = std::vector<paraula>(v);
-				m = (k*v.size())/log(2);  
+				n = v.size();
+				m = round(-(n*log(p)) / (log(2)*log(2)));  //m > k*n 
+				k = ceil(m/n*log(2));  //ceil 
                 setZeros();
                 for (int i = 0; i < k; i++) Counting(v, i); 
             }
@@ -168,7 +183,10 @@ namespace diccionari {
 				bool conte = true;
                 for (int i = 0; i < k; i++){
 					int ii = i<<2;
-					if (counters[Murmur_hash(ii,p)] == 0) conte = false; break;
+					if (counters[Murmur_hash(ii,p)] == 0) {
+						conte = false; 
+						break;
+					}
                 }
                 return conte;
             }
