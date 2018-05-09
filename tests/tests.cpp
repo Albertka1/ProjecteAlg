@@ -173,9 +173,9 @@ namespace tests_diccionari {
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::milliseconds>() << " ms" << endl;
 		else
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::microseconds>() << " ys" << endl;
-		cout.imbue(locale("")); cout << "Num Comparacions cerca:\t" << dicc->count_comps() << endl;
+		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
 		dicc->restart_count();
-		cout << "Load Factor: " << dicc->getLoadFactor() << endl;
+		
 		cout << endl;
 		
 		auto cr2 = Cronometre<void>([dicc, &entrada, &trobats](void) {
@@ -244,9 +244,9 @@ int test_funcs(int type, int d, int t, float p) {
 	int i = -1;
 	
 	if (tests_diccionari::minitest(type) < 0) return i; --i;
-	if (tests_diccionari::existeix(type, d, t, p) < 0) return i; --i;
-	if (tests_diccionari::existeix_lot(type, d, t, p) < 0) return i; --i;
-	if (tests_diccionari::existeix_lot_ordenat(type, d, t, p) < 0) return i; --i;
+	//if (tests_diccionari::existeix(type, d, t, p) < 0) return i; --i;
+	//if (tests_diccionari::existeix_lot(type, d, t, p) < 0) return i; --i;
+	//if (tests_diccionari::existeix_lot_ordenat(type, d, t, p) < 0) return i; --i;
 	
 	return 0;
 }
@@ -262,7 +262,14 @@ int metrics(int type, int d, int t, float p) {
 int main(int argc, char** argv) {
 	int i = -1;
 	
-	// if (test_funcs(DictType::tCercaSequencial, 8, 5, 0.1f) < 0) return i; --i;
+	if (test_funcs(DictType::tSimpleBloom, 8, 5, 0.1f) < 0) return i; --i;
+	int n = 5000; 
+    int d = n;
+    int t = 3;
+    float p = 0.5f;
+	tests_diccionari::comparativa(diccionari::tSimpleBloom,d,t,p);
+	
+	//if (test_funcs(DictType::tCercaSequencial, 8, 5, 0.1f) < 0) return i; --i;
 	// if (test_funcs(DictType::tSetFind, 8, 5, 0.1f) < 0) return i; --i;
 	// if (test_funcs(DictType::tUSetFind, 8, 5, 0.1f) < 0) return i; --i;
 	// if (test_funcs(DictType::tBTree, 8, 5, 0.1f) < 0) return i; --i;
@@ -281,25 +288,27 @@ int main(int argc, char** argv) {
 	
 	// if (tests_utils::cronometre() < 0) return i; --i;
 	// if (tests_utils::disp_t    () < 0) return i; --i;
-        
-		int type = diccionari::Murmur; //Murmur
-		int n = 5000; 
-			int d = n;
-			int t = 2;
-        float p = 0.5f;
-		tests_diccionari::comparativa(1,d,t,p);
-		tests_diccionari::comparativa(diccionari::Murmur,d,t,p);
-		//tests_diccionari::comparativa(diccionari::DJB2	,d,t,p);
-		//tests_diccionari::comparativa(diccionari::SHA	,d,t,p);
-		//tests_diccionari::comparativa(diccionari::MD5, d, t, p);
-		tests_diccionari::comparativa(diccionari::xxHash, d, t, p);
-		tests_diccionari::comparativa(diccionari::FNV, d, t, p);
-		tests_diccionari::comparativa(diccionari::LinearProbbing, d, t, p);
-		tests_diccionari::comparativa(diccionari::SeparateChaining, d, t, p);
-
+	
+	/*int type = diccionari::Murmur; //Murmur
+      int n = 5000; 
+      int d = n;
+      int t = 3;
+      float p = 0.5f;
+      tests_diccionari::comparativa(1,d,t,p);
+	  tests_diccionari::comparativa(diccionari::Murmur,d,t,p);
+	  //tests_diccionari::comparativa(diccionari::DJB2	,d,t,p);
+	  //tests_diccionari::comparativa(diccionari::SHA	,d,t,p);
+	  //tests_diccionari::comparativa(diccionari::MD5, d, t, p);
+	  tests_diccionari::comparativa(diccionari::xxHash, d, t, p);
+	  tests_diccionari::comparativa(diccionari::FNV, d, t, p);
+	  tests_diccionari::comparativa(diccionari::LinearProbbing, d, t, p);
+	  tests_diccionari::comparativa(diccionari::SeparateChaining, d, t, p);
+*/
+	
 #ifdef _MSC_VER
 	cin.ignore();
 #endif
 	
 	return 0;
 }
+
