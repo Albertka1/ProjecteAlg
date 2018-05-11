@@ -56,6 +56,8 @@ namespace diccionari {
 		virtual std::vector<bool> existeix_lot(std::vector<paraula>& lot) const { // POST: lot està ordenat
 			std::vector<bool> res(0);
 			std::sort(lot.begin(), lot.end());
+			auto it = std::unique(lot.begin(), lot.end());
+			lot.resize(it - lot.begin());
 			for (paraula p : lot) res.push_back(existeix(p));
 			return res;
 		}
