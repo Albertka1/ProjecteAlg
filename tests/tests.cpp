@@ -2,6 +2,7 @@
 #include <ctime>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -21,6 +22,7 @@ using namespace utils;
 
 namespace tests_diccionari {
 	int minitest(int n) {
+		cerr << "MINITEST Diccionari(" << n << ")" << endl;
 		cout << "\tMINITEST Diccionari(" << n << ")" << endl;
 		
 		vector<paraula> vdicc = { 2, 4, 6, 8, 10, 1, 13, 15 };
@@ -50,6 +52,7 @@ namespace tests_diccionari {
 	}
 
 	int existeix(int n, int d, int t, float p) {
+		cerr << "TEST Diccionari(" << n << ")->existeix" << endl;
 		cout << "\tTEST Diccionari(" << n << ")->existeix" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
 		cout << "Tamany test:\t\t" << d*t << endl;
@@ -73,6 +76,7 @@ namespace tests_diccionari {
 	}
 
 	int existeix_lot(int n, int d, int t, float p) {
+		cerr << "TEST Diccionari(" << n << ")->existeix_lot" << endl;
 		cout << "\tTEST Diccionari(" << n << ")->existeix_lot" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
 		cout << "Tamany test:\t\t" << d * t << endl;
@@ -106,6 +110,7 @@ namespace tests_diccionari {
 	}
 	
 	int existeix_lot_ordenat(int n, int d, int t, float p) {
+		cerr << "TEST Diccionari(" << n << ")->existeix_lot_ordenat" << endl;
 		cout << "\tTEST Diccionari(" << n << ")->existeix_lot_ordenat" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
 		cout << "Tamany test:\t\t" << d * t << endl;
@@ -138,7 +143,14 @@ namespace tests_diccionari {
 		return 0;
 	}
 
-	int comparativa(int n, int d, int t, float p) {
+	int count(const vector<bool>& vb) {
+		int i = 0;
+		for (bool b : vb) if (b) ++i;
+		return i;
+	}
+	
+	int comparativa(int n, int d, int t, float p, bool print = false) {
+		cerr << "COMPARATIVA Diccionari(" << n << ")" << endl;
 		cout << "\tCOMPARATIVA Diccionari(" << n << ")" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
 		cout << "Tamany test:\t\t" << d*t << endl;
@@ -148,23 +160,35 @@ namespace tests_diccionari {
 		Diccionari* dicc;
 		vector<paraula> vdicc = vector<paraula>();
 		vector<paraula> entrada = vector<paraula>();
-		vector<bool> trobats = vector<bool>();
+		vector<bool> t1 = vector<bool>(), t2 = vector<bool>(), t3 = vector<bool>();
 		
 		// cout << "Generating ..." << endl;
 		
 		motorAleatori.llavor(time(NULL));
 		vdicc = genera_diccionari(d);
-		dicc = diccionari::factory(n, vdicc);
 		entrada = genera_text(d*t, p, vdicc);
 		vector<paraula> copia = vector<paraula>(entrada);
-		trobats.reserve(entrada.size()); // Assegura temps constant en .push_back
+		t1.reserve(entrada.size()); // Assegura temps constant en .push_back
+		
+		auto cr0 = crea_Cronometre(function<void(void)>(
+		[n, vdicc, &dicc](void) {
+				dicc = diccionari::factory(n, vdicc);
+			}
+		));
+		cr0();
 		if (dicc == NULL) return -1;
+		if (cr0.elapsed<chrono::milliseconds>() > 100LL)
+			cout << "Temps creacio:\t\t" << cr0.elapsed<chrono::milliseconds>() << " ms" << endl;
+		else
+			cout << "Temps creacio:\t\t" << cr0.elapsed<chrono::microseconds>() << " ys" << endl;
+		cout << "Load Factor:\t\t" << dicc->getLoadFactor() << endl;
+		cout << endl;
 		
 		// cout << "Running ..." << endl;
 		
-		function<void(void)> cerca_sequencial = function<void(void)>([dicc, entrada, &trobats](void) {
+		function<void(void)> cerca_sequencial = function<void(void)>([dicc, entrada, &t1](void) {
 			for (paraula par : entrada)
-				trobats.push_back(dicc->existeix(par));
+				t1.push_back(dicc->existeix(par));
 		});
 		
 		auto cr1 = crea_Cronometre(cerca_sequencial);
@@ -173,13 +197,21 @@ namespace tests_diccionari {
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::milliseconds>() << " ms" << endl;
 		else
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::microseconds>() << " ys" << endl;
-		cout.imbue(locale("")); cout << "Num Comparacions cerca:\t" << dicc->count_comps() << endl;
+		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
 		dicc->restart_count();
-		cout << "Load Factor: " << dicc->getLoadFactor() << endl;
 		cout << endl;
-		
-		auto cr2 = Cronometre<void>([dicc, &entrada, &trobats](void) {
-			trobats = dicc->existeix_lot(entrada);
+		vector<pair<paraula, bool>> pt1 = vector<pair<paraula, bool>>(0);
+		for (unsigned i = 0; i < t1.size(); ++i)
+			pt1.push_back(make_pair(entrada[i], t1[i]));
+		sort(pt1.begin(), pt1.end(), [](pair<paraula, bool> a, pair<paraula, bool> b) {return a < b; });
+		auto it1 = unique(pt1.begin(), pt1.end(), [](pair<paraula, bool> a, pair<paraula, bool> b) {return a == b; });
+		pt1.resize(it1 - pt1.begin());
+		t1.resize(0);
+		for (auto p : pt1)
+			t1.push_back(p.second);
+
+		auto cr2 = Cronometre<void>([dicc, &entrada, &t2](void) {
+			t2 = dicc->existeix_lot(entrada);
 		});
 		cr2();
 		if (cr2.elapsed<chrono::milliseconds>() > 100LL)
@@ -191,8 +223,8 @@ namespace tests_diccionari {
 
 		cout << endl;
 
-		auto cr3 = Cronometre<void>([dicc, entrada, &trobats](void) {
-			trobats = dicc->existeix_lot_ordenat(entrada);
+		auto cr3 = Cronometre<void>([dicc, entrada, &t3](void) {
+			t3 = dicc->existeix_lot_ordenat(entrada);
 		});
 		cr3();
 		if (cr3.elapsed<chrono::milliseconds>() > 100LL)
@@ -202,12 +234,46 @@ namespace tests_diccionari {
 		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
 		dicc->restart_count();
 
+		cout << endl;
+
+		cout << "Num trobats" << endl;
+		cout << "seq: " << count(t1) << endl;
+		cout << "lot: " << count(t2) << endl;
+		cout << "ord: " << count(t3) << endl;
+
+		cout << endl;
+
 		sort(copia.begin(), copia.end());
-		cout << (entrada == copia ? "OK" : "ENTRADA ADULTERADA") << endl;
+		auto it = unique(copia.begin(), copia.end());
+
+		copia.resize(it - copia.begin());
+		cout << "Reordenament" << endl;
+		bool E_C = entrada == copia;
+		cout << (E_C ? "OK" : "ENTRADA ADULTERADA") << endl;
+		
+		if (print) {
+			cout << endl;
+			if (!E_C)
+				cout << to_string(display_tabular("\t\t", entrada, copia)) << endl;
+			else
+				cout << to_string(display_tabular("\t\t", copia, t1, t2, t3)) << endl;
+		}
 		
 		cout << endl;
 		delete dicc;
 		return 0;
+	}
+
+	int print(int n, int d) {
+		cerr << "PRINT Diccionari(" << n << ")" << endl;
+		cout << "\tPRINT Diccionari(" << n << ")" << endl;
+		cout << "Tamany diccionari:\t" << d << endl;
+		cout << endl;
+
+		motorAleatori.llavor(time(NULL));
+		Diccionari *dicc = factory(n, genera_diccionari(d));
+		if (dicc == NULL) return -1;
+		cout << (string)*dicc << endl;
 	}
 }
 
@@ -251,11 +317,28 @@ int test_funcs(int type, int d, int t, float p) {
 	return 0;
 }
 
-int metrics(int type, int d, int t, float p) {
+int metrics(int type, int d, int t, float p, bool print = false) {
 	int i = -1;
 	
-	if (tests_diccionari::comparativa(type, d, t, p) < 0) return i; --i;
+	if (tests_diccionari::comparativa(type, d, t, p, print) < 0) return i; --i;
 	
+	return 0;
+}
+
+int multimetrics(const vector<int>& types, const vector<int>& ds, const vector<int>& ts, const vector<float>& fs, bool print = false) {
+	int i = -1;
+
+	for (int type : types)
+	{
+		for (int d : ds) for (int t : ts) for (float f : fs) {
+			if (metrics(type, d, t, f, print) < 0)
+				return i;
+			--i;
+		}
+
+		cout << "-------------------------------------" << endl << endl;
+	}
+
 	return 0;
 }
 
@@ -269,33 +352,48 @@ int main(int argc, char** argv) {
 	// if (test_funcs(DictType::tBST, 8, 5, 0.1f) < 0) return i; --i;
 	// if (test_funcs(DictType::tTreap, 8, 5, 0.1f) < 0) return i; --i;
 	
-	// if (metrics(DictType::tSetFind, 1000, 100, 0.01f) < 0) return i; --i;
-	// if (metrics(DictType::tSetFind, 1000, 100, 0.05f) < 0) return i; --i;
-	// if (metrics(DictType::tSetFind, 100000, 100, 0.01f) < 0) return i; --i;
-	// if (metrics(DictType::tSetFind, 100000, 100, 0.05f) < 0) return i; --i;
-	
-	// if (metrics(DictType::tBST, 1000, 100, 0.01f) < 0) return i; --i;
-	// if (metrics(DictType::tBST, 1000, 100, 0.05f) < 0) return i; --i;
-	// if (metrics(DictType::tBST, 100000, 100, 0.01f) < 0) return i; --i;
-	// if (metrics(DictType::tBST, 100000, 100, 0.05f) < 0) return i; --i;
+	if (
+		multimetrics(
+			{
+				//DictType::tCercaSequencial,
+				DictType::tSetFind,
+				DictType::tUSetFind,
+				DictType::tBST,
+				DictType::tTreap,
+			},
+			{
+				1000,
+				100000,
+			},
+			{
+				10,
+				100,
+			},
+			{
+				0.01f,
+				0.05f,
+			},
+			false
+		) < 0) return i; --i;
+
+	// if (tests_diccionari::print(DictType::tTreap, 20) < 0) return i; --i;
 	
 	// if (tests_utils::cronometre() < 0) return i; --i;
 	// if (tests_utils::disp_t    () < 0) return i; --i;
-        
-		int type = diccionari::Murmur; //Murmur
-		int n = 5000; 
-			int d = n;
-			int t = 2;
-        float p = 0.5f;
-		tests_diccionari::comparativa(1,d,t,p);
-		tests_diccionari::comparativa(diccionari::Murmur,d,t,p);
-		//tests_diccionari::comparativa(diccionari::DJB2	,d,t,p);
-		//tests_diccionari::comparativa(diccionari::SHA	,d,t,p);
-		//tests_diccionari::comparativa(diccionari::MD5, d, t, p);
-		tests_diccionari::comparativa(diccionari::xxHash, d, t, p);
-		tests_diccionari::comparativa(diccionari::FNV, d, t, p);
-		tests_diccionari::comparativa(diccionari::LinearProbbing, d, t, p);
-		tests_diccionari::comparativa(diccionari::SeparateChaining, d, t, p);
+	
+	int d = 5000;
+	int t = 2;
+	float p = 0.5f;
+
+	// tests_diccionari::comparativa(diccionari::tBST,d,t,p);
+	// tests_diccionari::comparativa(diccionari::Murmur,d,t,p);
+	// tests_diccionari::comparativa(diccionari::DJB2	,d,t,p);
+	// tests_diccionari::comparativa(diccionari::SHA	,d,t,p);
+	// tests_diccionari::comparativa(diccionari::MD5, d, t, p);
+	// tests_diccionari::comparativa(diccionari::xxHash, d, t, p);
+	// tests_diccionari::comparativa(diccionari::FNV, d, t, p);
+	// tests_diccionari::comparativa(diccionari::LinearProbbing, d, t, p);
+	// tests_diccionari::comparativa(diccionari::SeparateChaining, d, t, p);
 
 #ifdef _MSC_VER
 	cin.ignore();
