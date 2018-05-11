@@ -22,7 +22,7 @@ namespace diccionari {
 	
 	class SetFind : public Diccionari {
 	private:
-		long long int n_comp;
+		mutable long long int n_comp;
 		cmp_par cmp;
 		std::set<paraula, cmp_par> pars;
 		
@@ -47,14 +47,15 @@ namespace diccionari {
 			
 			std::set_difference(lot.cbegin(), lot.cend(), pars.cbegin(), pars.cend(),
 				std::inserter(falten, falten.begin()), cmp);
-			for (unsigned i = 0, j = 0; i < lot.size() && j < falten.size(); ++i) {
-				if (lot[i] == falten[j]) {
-					++j;
-					res[i] = false;
+				for (unsigned i = 0, j = 0; i < lot.size() && j < falten.size(); ++i) {
+					++n_comp;
+					if (lot[i] == falten[j]) {
+						++j;
+						res[i] = false;
+					}
+					else
+						res[i] = true;
 				}
-				else
-					res[i] = true;
-			}
 			
 			return res;
 		}
