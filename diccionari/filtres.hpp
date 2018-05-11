@@ -203,8 +203,8 @@ namespace diccionari {
 	class Quotient : public Diccionari { //deberia ser lento (permite deletes, coste espacial bajo)
 		private:
 			struct quotient_slot {
-				quotient_slot(): fr(-1), is_occupied(false), is_continuation(false), is_shifted(false){}
-				long fr; //remainder
+				quotient_slot(): fr(0), is_occupied(false), is_continuation(false), is_shifted(false){}
+				unsigned long fr; //remainder
 				bool is_occupied;
 				bool is_continuation;
 				bool is_shifted;
@@ -231,7 +231,7 @@ namespace diccionari {
 			//is_occupied, is_continuation, is_shifted
 			
 			unsigned long Murmur_hash(paraula par) const {
-				uint32_t seed = 95;
+				uint32_t seed = 90;
 				uint32_t *hash_otpt[1] = {0};
 				const unsigned long long *key = &par;
 
@@ -248,14 +248,96 @@ namespace diccionari {
 				return (unsigned long)res/murmur_mod;
 			}
 			
-			int search_cluster(const int index) {
+			/*int search_index(const int index) {
 				int i = index;
 				bool found = false;
 				while (!found and i < m) {
-					if (quotient[i].fr == -1) found = true; //busquem espai buit
 					i++;
+					if (quotient[i].is_continuation == 0) found = true; //busquem element fora del run
 				}
-				return i-1;
+				return i; //retorno el primer buit
+			}*/
+			
+			void insert_element(const int index, const unsigned long remainder) {
+				int i = index;
+				bool inserted = false;
+				int cluster_num = 0;
+				while (!inserted) {
+					cout << "ESTO ES " << i << endl;
+					cout << "THIS SLOT: " << quotient[i].fr << endl;
+					cout << "MY REMAINDER: " << remainder << endl;
+					
+					if (!quotient[i].is_occupied and !quotient[i].is_continuation and !quotient[i].is_shifted) { //insert directe al final (cua del run)
+						cout << "DIRECT INSERT" << endl;
+						inserted = true;
+						quotient[i].fr = remainder;
+						quotient[i].is_continuation= true;
+						quotient[i].is_shifted = true;
+					}
+					else if (quotient[i].fr > remainder) { //encontramos su posicion y insertamos desplazando los demas
+						cout << "INSERTAMOS" << endl;
+						inserted = true;
+						bool was_first = false;
+						bool all_shifted = false;
+						quotient_slot aux = quotient[i];
+						quotient[i].fr = remainder;
+						if (aux.is_occupied) was_first = true;  
+						i++;
+						while (!all_shifted) {
+							cout << "SHIFTAMOS A " << i << endl;
+							quotient_slot aux2 = quotient[i];
+							quotient[i].fr = aux.fr;
+							if ((!aux2.is_occupied and !aux2.is_continuation and !aux2.is_shifted) or (i == m)) all_shifted = true;
+							if (was_first) {
+								cout << "WAS FIRST" << endl;
+								quotient[i].is_continuation = true;
+								was_first = false;
+							}
+							quotient[i].is_shifted = true;
+							cout << "fr :" << quotient[i].fr << endl;
+							cout << "occ:" << quotient[i].is_occupied << endl;
+							cout << "con:" << quotient[i].is_continuation << endl;
+							cout << "shi:" << quotient[i].is_shifted << endl;
+							cout << endl;
+							aux = aux2;
+							i++;
+						}
+					}
+					else if (cluster_num == 1 and !quotient[i].is_continuation) {//fin de cluster, insertamos al final y desplazamos si hace falta
+						cout << "FIN DE CLUSTER" << endl;
+						inserted = true;
+						bool all_shifted = false;	
+						quotient_slot aux = quotient[i];
+						quotient[i].fr = remainder;
+						quotient[i].is_continuation = true;
+						quotient[i].is_shifted = true;
+						i++;
+						while (!all_shifted) {
+							cout << "SHIFTAMOS2 A " << i << endl;
+							quotient_slot aux2 = quotient[i];
+							quotient[i].fr = aux.fr;
+							if ((!aux2.is_occupied and !aux2.is_continuation and !aux2.is_shifted) or (i == m)) all_shifted = true;
+							quotient[i].is_shifted = true;
+							aux = aux2;
+						}
+						
+						/*cout << "fr :" << quotient[i].fr << endl;
+						cout << "occ:" << quotient[i].is_occupied << endl;
+						cout << "con:" << quotient[i].is_continuation << endl;
+						cout << "shi:" << quotient[i].is_shifted << endl;*/
+					}
+					//else if (quotient[i].fr < remainder) { //no insert, continuamos 
+						//cout << "SEGUIMOS" << endl;
+					//}
+					++i;
+					cluster_num = 1;
+					cout << endl;
+					
+				}
+				/*while (!quotient[i].is_continuation) {
+					cout << "DESPLAZO EN " << i << endl;
+					++i;
+				}*/
 			}
 			
 			void add_element(const unsigned long f) {
@@ -269,6 +351,7 @@ namespace diccionari {
 				
 				quotient_slot canonical = quotient[qindex];
 				
+				//el slot esta vacio, insertamos primer elemento del run en su slot canonico.
 				if (!canonical.is_occupied and !canonical.is_continuation and !canonical.is_shifted) { //0;0;0;
 					quotient[qindex].is_occupied = true;
 					quotient[qindex].fr = remainder;
@@ -278,23 +361,35 @@ namespace diccionari {
 					quotient[qindex].is_occupied = true;
 					quotient[qindex+1].is_shifted = true;
 					quotient[qindex+1].fr = remainder;
-				}
+				}*/
 				
 				else if (canonical.is_occupied and !quotient[qindex].is_continuation and !quotient[qindex].is_shifted) { //1;0;0;
-					if (canonical.fr < remainder) {
-						quotient[qindex+1].is_continuation = true;
-						//quotient[qindex+1].is_
-					}
-					else if (canonical.fr > remainder) {
-						int last_index = search_cluster(qindex);
-						for (int i = last_index; i >= qindex; i--) {
+						insert_element(qindex, remainder);
+						/*if (!quotient[qindex+1].is_occupied and !quotient[qindex+1].is_continuation and !quotient[qindex+1].is_shifted) {
+							quotient[qindex+1].is_continuation = true;
+							quotient[qindex+1].is_shifted = true;
+							quotient[qindex+1].fr = remainder;
+						}
+						int last_index = search_index(qindex);
+						cout << "LAST INDEX: " << last_index<< endl;
+						int i = last_index; 
+						while(remainder < quotient[i-1].fr) {
+							cout << "HAGO COSAS NAZIS PETER: " << i << endl;
+							
+							--i;
+						}
+						cout << "I FINAL: " << i << endl;*/
+
+					/*else if (canonical.fr > remainder) {
+						int last_index = search_index(qindex);
+						for (int i = last_index-1; i >= qindex; i--) {
 							quotient[i+1].fr = quotient[i].fr;
 							quotient[i+1].is_shifted = true;
 						}
 						quotient[qindex].is_occupied = true;
 						quotient[qindex].fr = remainder;
-					}
-				}*/
+					}*/
+				}
 				//else if (!)
 			}
 			
@@ -325,13 +420,13 @@ namespace diccionari {
 				}*/
 				
 				cout << endl << endl;
-				/*for (paraula p1: v) {
+				for (paraula p1: v) {
 					unsigned long f = Murmur_hash(p1);
 					cout << "la palabra '" << p1 << "' tiene como valor hash: " << f << endl;
 					add_element(f);
 					cout << endl;
-				}*/
-				/*
+				}
+				
 				cout << endl << "DESPUES DE LA TORMENTA" << endl;
 				
 				for (int i = 0; i < m; i++) {
@@ -341,7 +436,7 @@ namespace diccionari {
 					cout << "Is_continuation: " << quotient[i].is_continuation << endl;
 					cout << "Is_shifted: " << quotient[i].is_shifted << endl << endl;
 				}
-				*/
+				
 				
 				
 				
