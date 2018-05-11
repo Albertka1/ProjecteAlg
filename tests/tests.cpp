@@ -2,7 +2,6 @@
 #include <ctime>
 #include <functional>
 #include <iostream>
-#include <map>
 #include <string>
 #include <vector>
 
@@ -197,8 +196,9 @@ namespace tests_diccionari {
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::milliseconds>() << " ms" << endl;
 		else
 			cout << "Temps sequencial:\t" << cr1.elapsed<chrono::microseconds>() << " ys" << endl;
-		cout << "Num Comparacions:\t" << dicc->count_comps() << endl;
+		cout.imbue(locale("")); cout << "Num Comparacions cerca:\t" << dicc->count_comps() << endl;
 		dicc->restart_count();
+		cout << "Load Factor: " << dicc->getLoadFactor() << endl;
 		cout << endl;
 		vector<pair<paraula, bool>> pt1 = vector<pair<paraula, bool>>(0);
 		for (unsigned i = 0; i < t1.size(); ++i)
@@ -401,3 +401,4 @@ int main(int argc, char** argv) {
 	
 	return 0;
 }
+
