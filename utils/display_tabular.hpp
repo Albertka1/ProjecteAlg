@@ -23,7 +23,7 @@ namespace utils {
 	template <class cont>
 	std::vector<std::string> display_tabular(const std::string& tab, const cont& c) {
 		std::vector<std::string> v = std::vector<std::string>();
-		for(auto elem : c) v.push_back(std::to_string(elem));
+		for(auto elem : c) v.push_back(to_string(elem));
 		return v;
 	}
 	template <class cont, class ... conts>

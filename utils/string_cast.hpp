@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace utils {
-	template <class T> std::string to_string(const T& val);
+	template <class T> std::string to_string(const T& val) { return (std::string)val; }
 	template <> std::string to_string<int>(const int& i) { return std::to_string(i); }
 	template <> std::string to_string<long>(const long& i) { return std::to_string(i); }
 	template <> std::string to_string<long long>(const long long& i) { return std::to_string(i); }
@@ -22,7 +22,6 @@ namespace utils {
 			result += s + "\n";
 		return result;
 	}
-	template <class T> std::string to_string(const T& val) { return (std::string)val; }
 	
 	template <class T> T from_string(const std::string& str) { return T(str); }
 	template <> bool from_string<bool>(const std::string& str) {
