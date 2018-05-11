@@ -30,14 +30,18 @@ namespace diccionari {
 				if (R != NULL) delete R;
 			}
 
-			void insert(paraula p) {
+			void insert(paraula p, long long int *NC) {
+				if (NC != NULL) ++(*NC);
 				if (p < key) {
-					if (L != NULL) L->insert(p);
+					if (L != NULL) L->insert(p, NC);
 					else L = new Node(p);
 				}
-				else if (p > key) {
-					if (R != NULL) R->insert(p);
-					else R = new Node(p);
+				else {
+					if (NC != NULL) ++(*NC);
+					if (p > key) {
+						if (R != NULL) R->insert(p, NC);
+						else R = new Node(p);
+					}
 				}
 			}
 
@@ -92,78 +96,85 @@ namespace diccionari {
 				return r;
 			}
 
-			bool exists(paraula p) {
-				if (p == key) return true;
-				if (p < key && L != NULL) return L->exists(p);
-				if (p > key && R != NULL) return R->exists(p);
-				return false;
+			bool exists(paraula p, long long int *NC) {
+				if (NC != NULL) ++(*NC);
+				if (p < key && L != NULL) return L->exists(p, NC);
+
+				if (NC != NULL) ++(*NC);
+				if (p > key && R != NULL) return R->exists(p, NC);
+
+				if (NC != NULL) ++(*NC);
+				return (p == key);
 			}
 
-			unsigned split(const std::vector<paraula>& lot, unsigned a, unsigned b) {
-				if (a == b) return a;
-				if (lot[b] >= key) return b;
-				if (lot[a] <= key) return a;
+			// Returns X where
+			// lot[X-1] < key <= lot[X]
+			// a <= X
+			// X <= b+1
+			unsigned split(const std::vector<paraula>& lot, unsigned a, unsigned b, long long int *NC) {
+				unsigned pivot;
+				while (a < b) {
+					pivot = (a + b) / 2;
+					if (NC != NULL) ++(*NC);
+					if (lot[pivot] < key)
+						a = pivot + 1;
+					else
+						b = pivot;
+				}
 
-				unsigned pivot = (a + b) / 2;
-				if (lot[pivot] < key)
-					return split(lot, pivot, b);
-				else
-					return split(lot, a, pivot);
+				return a;
 			}
 
-			void set_search(const std::vector<paraula>& lot, std::vector<bool>& trobats, unsigned a, unsigned b) {
-				unsigned pivot = split(lot, a, b); // key <= lot[pivot] < R->key
+			void set_search(const std::vector<paraula>& lot, std::vector<bool>& trobats, unsigned a, unsigned b, long long int *NC) {
+				unsigned pivot = split(lot, a, b, NC);
+				if (NC != NULL) ++(*NC);
 				if (L != NULL)
-					L->set_search(lot, trobats, a, pivot);
-				if (R != NULL)
-					R->set_search(lot, trobats, a, pivot);
-				if (lot[pivot] == key) trobats[pivot] = true;
-			}
-
-			void secciona(paraula p, Node *& l, Node *& r) {
-				if (p < key) {
-					l = L;
-					r = this;
-					if (L != NULL) L->secciona(p, l, r);
-				}
-				else if (p > key) {
-					l = this;
-					r = R;
-					if (R != NULL) R->secciona(p, l, r);
-				}
-				else {
-					l = this; r = this;
+					L->set_search(lot, trobats, a, pivot, NC);
+				if (pivot < lot.size()) {
+					if (lot[pivot] == key) {
+						trobats[pivot] = true;
+						if (R != NULL)
+							R->set_search(lot, trobats, pivot + 1, b, NC);
+					}
+					else if (R != NULL)
+						R->set_search(lot, trobats, pivot, b, NC);
 				}
 			}
 
-			std::vector<bool> q_search(std::vector<paraula>& lot) {
-				paraula pivot = lot[0];
-				std::vector<bool> trobats   = std::vector<bool>();
-				std::vector<paraula> vLeft  = std::vector<paraula>();
+			std::vector<bool> q_search(std::vector<paraula>& lot, long long int *NC) {
+				bool hit = false;
+				std::vector<bool> trobats = std::vector<bool>();
+				std::vector<paraula> vLeft = std::vector<paraula>();
 				std::vector<paraula> vRight = std::vector<paraula>();
 
-				trobats.reserve(lot.size());
-
 				for (unsigned i = 0; i < lot.size(); ++i) {
-					if (lot[i] < pivot) vLeft.push_back(lot[i]);
-					else vRight.push_back(lot[i]);
+					if (NC != NULL) ++(*NC);
+					if (lot[i] < key) vLeft.push_back(lot[i]);
+					else {
+						if (NC != NULL) ++(*NC);
+						if (lot[i] > key) vRight.push_back(lot[i]);
+						else hit = true;
+					}
 				}
 
-				Node *nLeft = this, *nRight = this;
-				secciona(pivot, nLeft, nRight);
-
-				if (nLeft != NULL && vLeft.size() > 0)
-					trobats = nLeft->q_search(vLeft);
-
-				trobats.push_back(nLeft == nRight);
-
-				if (nRight != NULL && vRight.size() > 0) {
-					std::vector<bool> tmp = nRight->q_search(vRight);
-					trobats.insert(trobats.end(), tmp.begin(), tmp.end());
+				if (L != NULL) trobats = L->q_search(vLeft, NC);
+				else {
+					trobats = std::vector<bool>(vLeft.size(), false);
+					sort(vLeft.begin(), vLeft.end());
 				}
+
+				if (hit) trobats.push_back(true);
+
+				std::vector<bool> tmp;
+				if (R != NULL) tmp = R->q_search(vRight, NC);
+				else {
+					tmp = std::vector<bool>(vRight.size(), false);
+					sort(vRight.begin(), vRight.end());
+				}
+				trobats.insert(trobats.end(), tmp.begin(), tmp.end());
 
 				lot = vLeft;
-				lot.push_back(pivot);
+				if (hit) lot.push_back(key);
 				lot.insert(lot.end(), vRight.begin(), vRight.end());
 
 				return trobats;
@@ -179,6 +190,7 @@ namespace diccionari {
 			}
 		};
 		Node *tree;
+		mutable long long int n_comp = 0;
 
 	public:
 		BinarySearchTree(const std::vector<paraula>& v) : Diccionari() {
@@ -186,7 +198,7 @@ namespace diccionari {
 			else {
 				tree = new Node(v[0]);
 				for (unsigned i = 1; i < v.size(); ++i) {
-					tree->insert(v[i]);
+					tree->insert(v[i], &n_comp);
 				}
 				tree = tree->DSW(v.size());
 			}
@@ -197,36 +209,28 @@ namespace diccionari {
 
 		bool existeix(paraula p) const {
 			if (tree == NULL) return false;
-			return tree->exists(p);
+			return tree->exists(p, &n_comp);
 		}
 
 		bool optimitza_lot() const { return true; }
-		std::vector<bool> existeix_lot(std::vector<paraula>& lot) const { return tree->q_search(lot); }
+		std::vector<bool> existeix_lot(std::vector<paraula>& lot) const { return tree->q_search(lot, &n_comp); }
 
 		bool optimitza_lot_ordenat() const { return true; }
-		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
+		std::vector<bool> existeix_lot_ordenat(const std::vector<paraula>& lot) const {
 			std::vector<bool> trobats = std::vector<bool>(lot.size(), false);
-			tree->set_search(lot, trobats, 0, lot.size()-1);
+			tree->set_search(lot, trobats, 0, lot.size()-1, &n_comp);
 			return trobats;
 		}
-	
+		
+		long long int count_comps() const { return n_comp; }
+		void restart_count() { n_comp = 0; }
 	};
 
 	class Treap : public Diccionari {
 	private:
 		typedef int prio_type;
-		static prio_type priority(paraula p) { return p % 10000; }
-		static bool comp_p(paraula a, paraula b) { return priority(a) < priority(b); }
-		void init(std::vector<paraula>& v) {
-			if (v.size() == 0) tree = NULL;
-			else {
-				sort(v.begin(), v.end(), comp_p);
-				tree = new Node(v[0]);
-				for (unsigned i = 1; i < v.size(); ++i) {
-					tree->insert(v[i]);
-				}
-			}
-		}
+		static prio_type priority(paraula p) { return prio_type(p % (PARAULA_MAX/100)); }
+		static bool comp_p(paraula a, paraula b) { return priority(a) > priority(b); }
 
 		class Node {
 		public:
@@ -241,111 +245,139 @@ namespace diccionari {
 				if (R != NULL) delete R;
 			}
 
-			void insert(paraula p) {
+			void insert(paraula p, long long int *NC) {
+				if (NC != NULL) ++(*NC);
 				if (p < key) {
-						if (L != NULL) L->insert(p);
-						else L = new Node(p);
-				}
-				else if (p > key) {
-					if (R != NULL) R->insert(p);
-					else R = new Node(p);
-				}
-			}
-
-			bool exists(paraula p, prio_type pr) {
-				if (pr > prio) return false;
-				if (p < key) {
-					if (L != NULL) return L->exists(p, pr);
-					else return false;
-				}
-				else if (p > key) {
-					if (R != NULL) return R->exists(p, pr);
-					else return false;
-				}
-				else return true;
-			}
-			bool exists(paraula p) { return exists(p, priority(p)); }
-
-			unsigned split(const std::vector<paraula>& lot, unsigned a, unsigned b) {
-				if (a == b) return a;
-				if (lot[b] >= key) return b;
-				if (lot[a] <= key) return a;
-
-				unsigned pivot = (a + b) / 2;
-				if (lot[pivot] < key)
-					return split(lot, pivot, b);
-				else
-					return split(lot, a, pivot);
-			}
-
-			void set_search(const std::vector<paraula>& lot, std::vector<bool>& trobats, unsigned a, unsigned b) {
-				unsigned pivot = split(lot, a, b); // key <= lot[pivot] < R->key
-				if (L != NULL)
-					L->set_search(lot, trobats, a, pivot);
-				if (R != NULL)
-					R->set_search(lot, trobats, a, pivot);
-				if (lot[pivot] == key) trobats[pivot] = true;
-			}
-
-			void secciona(paraula p, Node *& l, Node *& r) {
-				if (p < key) {
-					l = L;
-					r = this;
-					if (L != NULL) L->secciona(p, l, r);
-				}
-				else if (p > key) {
-					l = this;
-					r = R;
-					if (R != NULL) R->secciona(p, l, r);
+					if (L != NULL) L->insert(p, NC);
+					else L = new Node(p);
 				}
 				else {
-					l = this; r = this;
+					if (NC != NULL) ++(*NC);
+					if (p > key) {
+						if (R != NULL) R->insert(p, NC);
+						else R = new Node(p);
+					}
 				}
 			}
 
-			std::vector<bool> q_search(std::vector<paraula>& lot) {
-				paraula pivot = lot[0];
+			bool exists(paraula p, prio_type pr, long long int *NC) {
+				if (pr > prio) return false;
+
+				if (NC != NULL) ++(*NC);
+				if (p < key) {
+					if (L != NULL)
+						return L->exists(p, pr, NC);
+					return false;
+				}
+
+				if (NC != NULL) ++(*NC);
+				if (p > key) {
+					if (R != NULL)
+						return R->exists(p, pr, NC);
+					return false;
+				}
+
+				return true;
+			}
+			bool exists(paraula p, long long int *NC) { return exists(p, priority(p), NC); }
+
+			// Returns X where
+			// lot[X-1] < key <= lot[X]
+			// a <= X
+			// X <= b+1
+			unsigned split(const std::vector<paraula>& lot, unsigned a, unsigned b, long long int *NC) {
+				unsigned pivot;
+				while (a < b) {
+					pivot = (a + b) / 2;
+					if (NC != NULL) ++(*NC);
+					if (lot[pivot] < key)
+						a = pivot + 1;
+					else
+						b = pivot;
+				}
+
+				return a;
+			}
+			
+			void set_search(const std::vector<paraula>& lot, std::vector<bool>& trobats, unsigned a, unsigned b, long long int *NC) {
+				unsigned pivot = split(lot, a, b, NC);
+				if (NC != NULL) ++(*NC);
+				if (L != NULL)
+					L->set_search(lot, trobats, a, pivot, NC);
+				if (pivot < lot.size()) {
+					if (lot[pivot] == key) {
+						trobats[pivot] = true;
+						if (R != NULL)
+							R->set_search(lot, trobats, pivot + 1, b, NC);
+					}
+					else if (R != NULL)
+						R->set_search(lot, trobats, pivot, b, NC);
+				}
+			}
+
+			std::vector<bool> q_search(std::vector<paraula>& lot, long long int *NC) {
+				bool hit = false;
 				std::vector<bool> trobats = std::vector<bool>();
 				std::vector<paraula> vLeft = std::vector<paraula>();
 				std::vector<paraula> vRight = std::vector<paraula>();
 
-				trobats.reserve(lot.size());
-
 				for (unsigned i = 0; i < lot.size(); ++i) {
-					if (lot[i] < pivot) vLeft.push_back(lot[i]);
-					else vRight.push_back(lot[i]);
+					if (NC != NULL) ++(*NC);
+					if (lot[i] < key) vLeft.push_back(lot[i]);
+					else {
+						if (NC != NULL) ++(*NC);
+						if (lot[i] > key) vRight.push_back(lot[i]);
+						else hit = true;
+					}
 				}
 
-				Node *nLeft = this, *nRight = this;
-				secciona(pivot, nLeft, nRight);
-
-				if (nLeft != NULL && vLeft.size() > 0)
-					trobats = nLeft->q_search(vLeft);
-
-				trobats.push_back(nLeft == nRight);
-
-				if (nRight != NULL && vRight.size() > 0) {
-					std::vector<bool> tmp = nRight->q_search(vRight);
-					trobats.insert(trobats.end(), tmp.begin(), tmp.end());
+				if (L != NULL) trobats = L->q_search(vLeft, NC);
+				else {
+					trobats = std::vector<bool>(vLeft.size(), false);
+					sort(vLeft.begin(), vLeft.end());
 				}
+
+				if (hit) trobats.push_back(true);
+
+				std::vector<bool> tmp;
+				if (R != NULL) tmp = R->q_search(vRight, NC);
+				else {
+					tmp = std::vector<bool>(vRight.size(), false);
+					sort(vRight.begin(), vRight.end());
+				}
+				trobats.insert(trobats.end(), tmp.begin(), tmp.end());
 
 				lot = vLeft;
-				lot.push_back(pivot);
+				if (hit) lot.push_back(key);
 				lot.insert(lot.end(), vRight.begin(), vRight.end());
 
 				return trobats;
 			}
 
 			operator std::string() {
-				if (L == NULL && R == NULL) return std::to_string(key);
-
-				std::string s = std::to_string(key) + "(";
-				s += ((L != NULL) ? (std::string)*L : "NULL") + " ";
-				s += ((R != NULL) ? (std::string)*R : "NULL") + ")";
+				std::string s = std::to_string(key) + ":" + std::to_string(prio);
+				if (!(L == NULL && R == NULL)) {
+					s += "(";
+					s += ((L != NULL) ? (std::string)*L : "NULL") + " ";
+					s += ((R != NULL) ? (std::string)*R : "NULL") + ")";
+				}
 				return s;
 			}
 		};
+
+		void init(std::vector<paraula>& v) {
+			if (v.size() == 0) tree = NULL;
+			else {
+				sort(v.begin(), v.end(), comp_p);
+				tree = new Node(v[0]);
+				for (unsigned i = 1; i < v.size(); ++i) {
+					tree->insert(v[i], &n_comp);
+				}
+			}
+		}
+
 		Node *tree;
+		mutable long long int n_comp = 0;
 
 	public:
 
@@ -355,18 +387,23 @@ namespace diccionari {
 
 		operator std::string() const { return (std::string)*tree; }
 
-		bool existeix(paraula p) const { return tree->exists(p); }
+		bool existeix(paraula p) const {
+			if (tree == NULL) return false;
+			return tree->exists(p, &n_comp);
+		}
 
 		bool optimitza_lot() const { return true; }
-		std::vector<bool> existeix_lot(std::vector<paraula>& lot) const { return tree->q_search(lot); }
+		std::vector<bool> existeix_lot(std::vector<paraula>& lot) const { return tree->q_search(lot, &n_comp); }
 
 		bool optimitza_lot_ordenat() const { return true; }
-		std::vector<bool> existeix_lot(const std::vector<paraula>& lot) const {
+		std::vector<bool> existeix_lot_ordenat(const std::vector<paraula>& lot) const {
 			std::vector<bool> trobats = std::vector<bool>(lot.size(), false);
-			tree->set_search(lot, trobats, 0, lot.size() - 1);
+			tree->set_search(lot, trobats, 0, lot.size() - 1, &n_comp);
 			return trobats;
 		}
 
+		long long int count_comps() const { return n_comp; }
+		void restart_count() { n_comp = 0; }
 	};
 }
 
