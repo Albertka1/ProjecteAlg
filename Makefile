@@ -4,6 +4,8 @@ diccionari = \
 	diccionari/diccionari.hpp \
 	diccionari/factory.hpp \
 	diccionari/generador.hpp \
+	diccionari/MurmurHash3.hpp \
+	diccionari/MurmurHash3.cpp \
 	\
 	diccionari/contenidors_stl.hpp \
 	diccionari/filtres.hpp \
@@ -18,8 +20,8 @@ utils = \
 
 all: test
 
-test: tests/tests.cpp ${diccionari} ${utils}
-	g++ ${flags} -o test tests/tests.cpp
+test: tests/tests.cpp ${diccionari} ${utils} 
+	g++ ${flags} tests/tests.cpp diccionari/MurmurHash3.cpp -o test 
 
 check: check/d_paraula check/d_diccionari check/d_factory check/d_generador check/u_cronometre check/u_display_tabular check/u_file_io check/u_string_cast
 
@@ -34,3 +36,4 @@ clean:
 
 ultraclean: clean
 	rm -rf test
+
