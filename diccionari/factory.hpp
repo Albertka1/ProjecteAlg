@@ -41,8 +41,8 @@ namespace diccionari {
 		case tMD5:				d = new HashTableMD5(pars, args ...); break;
 		case txxHash:			d = new HashTablexxHash(pars, args ...); break;
 		case tFNV:				d = new HashTableFNV(pars, args ...); break;
-		case tLinearProbbing:	d = new HashSet(pars, 1); break;
-		case tDoubleHashing:	d = new HashSet(pars, 2); break;
+		case tLinearProbbing:	d = new HashSet(pars, 1, args ...); break;
+		case tDoubleHashing:	d = new HashSet(pars, 2, args ...); break;
 		case tSeparateChaining:	d = new HashSetSeparateChaining(pars, args ...); break;
 
 		default:				d = NULL;
