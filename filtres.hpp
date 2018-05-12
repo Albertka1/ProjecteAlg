@@ -1,22 +1,23 @@
 #ifndef diccionari_filtres_hpp
 #define diccionari_filtres_hpp
 
-#include <cmath>
-#include <cstdint>
-//#include <cstdio>
-#include <cstring>
+#include <vector>
 #include <functional>
-#include <iomanip>
-#include <iostream>
 #include <iterator>
 #include <set>
-//#include <sstream>
 #include <unordered_set>
-#include <vector>
+#include <stdint.h>
+//#include <stdio.h>
+#include <string.h>
+#include <cmath>
+
+//#include <sstream>
+
+#include <iostream>
+#include <iomanip>
 
 #include "diccionari.hpp"
 #include "MurmurHash3.hpp"
-
 using namespace std;
 
 namespace diccionari {
@@ -25,7 +26,7 @@ namespace diccionari {
 			std::vector<paraula> pars;
 			std::vector<bool> bits;
 			//int n;  //tamany del vector pars
-			float p = 0.001f; // acceptable false positive rating (0.001 -> 0.1%)
+			float p = 0.001; // acceptable false positive rating (0.001 -> 0.1%)
 			unsigned int n;   //numero de elementos
 			unsigned int k;   //numero de hash per paraula
 			unsigned int m;   //tamany del vector bits
@@ -230,7 +231,7 @@ namespace diccionari {
 			//is_occupied, is_continuation, is_shifted
 			
 			unsigned long Murmur_hash(paraula par) const {
-				uint32_t seed = 90;
+				uint32_t seed = 95;
 				uint32_t *hash_otpt[1] = {0};
 				const unsigned long long *key = &par;
 
@@ -436,16 +437,31 @@ namespace diccionari {
 					cout << "Is_shifted: " << quotient[i].is_shifted << endl << endl;
 				}
 				
-				
-				
-				
 			}
 			
 			macro_stringCast
 			bool existeix(paraula p) const{
-				bool conte = true;
+				cout << endl;
+				cout << "Searching paraula " << p << endl;
+				bool conte = false;
 				unsigned long f = Murmur_hash(p);
+				int mod = (int)pow(2.0, r);
+				unsigned long remainder = f % mod; //fr
+				unsigned long qindex = floor(f / mod); //fq
 				
+				cout << "remainder es: " << remainder << endl;
+				cout << "qindex es: " << qindex << endl;
+				
+				if (quotient[qindex].is_occupied) {
+					if (quotient[qindex].fr == remainder) conte = true;
+					else { //falta programar esto
+						cout << "SOFT COLLISION" << endl; 
+					}
+				}
+				else {
+					cout << "HARD COLLISION" << endl;
+				}
+				cout << endl;
                 return conte;
             }
 	};
