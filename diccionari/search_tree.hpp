@@ -109,8 +109,7 @@ namespace diccionari {
 
 			// Returns X where
 			// lot[X-1] < key <= lot[X]
-			// a <= X
-			// X <= b+1
+			// a <= X <= b
 			unsigned split(const std::vector<paraula>& lot, unsigned a, unsigned b, long long int *NC) {
 				unsigned pivot;
 				while (a < b) {
@@ -130,15 +129,13 @@ namespace diccionari {
 				if (NC != NULL) ++(*NC);
 				if (L != NULL)
 					L->set_search(lot, trobats, a, pivot, NC);
-				if (pivot < lot.size()) {
-					if (lot[pivot] == key) {
-						trobats[pivot] = true;
-						if (R != NULL)
-							R->set_search(lot, trobats, pivot + 1, b, NC);
-					}
-					else if (R != NULL)
-						R->set_search(lot, trobats, pivot, b, NC);
+				if (lot[pivot] == key) {
+					trobats[pivot] = true;
+					if (R != NULL)
+						R->set_search(lot, trobats, pivot + 1, b, NC);
 				}
+				else if (R != NULL)
+					R->set_search(lot, trobats, pivot, b, NC);
 			}
 
 			std::vector<bool> q_search(std::vector<paraula>& lot, long long int *NC) {
@@ -283,8 +280,7 @@ namespace diccionari {
 
 			// Returns X where
 			// lot[X-1] < key <= lot[X]
-			// a <= X
-			// X <= b+1
+			// a <= X <= b
 			unsigned split(const std::vector<paraula>& lot, unsigned a, unsigned b, long long int *NC) {
 				unsigned pivot;
 				while (a < b) {
@@ -298,21 +294,19 @@ namespace diccionari {
 
 				return a;
 			}
-			
+
 			void set_search(const std::vector<paraula>& lot, std::vector<bool>& trobats, unsigned a, unsigned b, long long int *NC) {
 				unsigned pivot = split(lot, a, b, NC);
 				if (NC != NULL) ++(*NC);
 				if (L != NULL)
 					L->set_search(lot, trobats, a, pivot, NC);
-				if (pivot < lot.size()) {
-					if (lot[pivot] == key) {
-						trobats[pivot] = true;
-						if (R != NULL)
-							R->set_search(lot, trobats, pivot + 1, b, NC);
-					}
-					else if (R != NULL)
-						R->set_search(lot, trobats, pivot, b, NC);
+				if (lot[pivot] == key) {
+					trobats[pivot] = true;
+					if (R != NULL)
+						R->set_search(lot, trobats, pivot + 1, b, NC);
 				}
+				else if (R != NULL)
+					R->set_search(lot, trobats, pivot, b, NC);
 			}
 
 			std::vector<bool> q_search(std::vector<paraula>& lot, long long int *NC) {
