@@ -349,7 +349,7 @@ int multimetrics(const vector<int>& types, const vector<int>& ds, const vector<i
 	return 0;
 }
 
-int main(int argc, char** argv) {
+int prova() {
 	int i = -1;
 	
 	// if (test_funcs(DictType::tCercaSequencial, 8, 5, 0.1f) < 0) return i; --i;
@@ -359,7 +359,7 @@ int main(int argc, char** argv) {
 	// if (test_funcs(DictType::tBST, 8, 5, 0.1f) < 0) return i; --i;
 	// if (test_funcs(DictType::tTreap, 8, 5, 0.1f) < 0) return i; --i;
 	
-	if (
+	/*if (
 		multimetrics(
 			{
 				DictType::tCercaSequencial,
@@ -381,7 +381,7 @@ int main(int argc, char** argv) {
 				0.05f,
 			},
 			false
-		) < 0) return i; --i;
+		) < 0) return i; --i;*/
 
 	// if (tests_diccionari::print(DictType::tTreap, 20) < 0) return i; --i;
 	
@@ -395,3 +395,80 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
+template <class ... Args>
+int analitza(int type, int d, int t, float p, Args ... args) {
+	Diccionari *dicc;
+	int dt = d * t;
+	vector<paraula> vdicc, vtext;
+	vector<bool> troba = vector<bool>(dt, false);
+
+	vdicc = genera_diccionari(d);
+	vtext = genera_text(dt, p, vdicc);
+
+	cout << "Tipus: " << type << endl;
+	cout << "d: " << d << "\tt: " << t << "\tp: " << p << endl;
+	cout << endl;
+	
+	auto c_crea = Cronometre<void>([&dicc, type, vdicc, args ...]() {
+		dicc = factory(type, vdicc, args ...);
+	});
+	c_crea();
+
+	cout << "CREACIO" << endl;
+	cout << "temps: " << c_crea << endl;
+	cout << "n comps: " << dicc->count_comps() << endl;
+	cout << "load: " << dicc->getLoadFactor() << endl;
+	cout << endl;
+
+	dicc->restart_count();
+
+	auto c_seq = Cronometre<void>([&troba, dicc, vtext, dt]() {
+		for (int i = 0; i < dt; ++i)
+			troba[i] = dicc->existeix(vtext[i]);
+	});
+	c_seq();
+
+	cout << "CERCA SEQ" << endl;
+	cout << "temps: " << c_seq << endl;
+	cout << "n comps: " << dicc->count_comps() << endl;
+	cout << endl;
+
+	if (dicc->optimitza_lot()) {
+		// Reiniciem diccionari i text per evitar cache
+		vdicc = genera_diccionari(d);
+		vtext = genera_text(dt, p, vdicc);
+		dicc = factory(type, vdicc, args ...);
+		
+		auto c_lot = Cronometre<void>([&troba, dicc, &vtext]() {
+			troba = dicc->existeix_lot(vtext);
+		});
+		c_lot();
+
+		cout << "CERCA LOT" << endl;
+		cout << "temps: " << c_lot << endl;
+		cout << "n comps: " << dicc->count_comps() << endl;
+		cout << endl;
+	}
+
+	if (dicc->optimitza_lot_ordenat()) {
+		// Reiniciem diccionari i text per evitar cache
+		vdicc = genera_diccionari(d);
+		vtext = genera_text(dt, p, vdicc);
+		dicc = factory(type, vdicc, args ...);
+		
+		auto c_ord = Cronometre<void>([&troba, dicc, vtext]() {
+			troba = dicc->existeix_lot_ordenat(vtext);
+		});
+		c_ord();
+
+		cout << "CERCA ORD" << endl;
+		cout << "temps: " << c_ord << endl;
+		cout << "n comps: " << dicc->count_comps() << endl;
+		cout << endl;
+	}
+}
+
+int main(int argc, char** argv){
+	prova();
+	//analitza(...);
+}
