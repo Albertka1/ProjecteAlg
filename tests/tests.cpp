@@ -13,20 +13,19 @@
 #include "utils/file_io.hpp"
 #include "utils/string_cast.hpp"
 
-
-
 using namespace std;
 using namespace diccionari;
 using namespace utils;
 
 namespace tests_diccionari {
+	template <class ... Args>
 	int minitest(int n) {
 		cerr << "MINITEST Diccionari(" << n << ")" << endl;
 		cout << "\tMINITEST Diccionari(" << n << ")" << endl;
 		
 		vector<paraula> vdicc = { 2, 4, 6, 8, 10, 1, 13, 15 };
 		vector<bool> trobats = vector<bool>();
-		Diccionari *dicc = diccionari::factory(n, vdicc);
+		Diccionari *dicc = diccionari::factory(n, vdicc, args ...);
 		if (dicc == NULL) return -1;
 		
 		cout << "Diccionari = " << string(*dicc) << endl;
@@ -50,7 +49,8 @@ namespace tests_diccionari {
 		return 0;
 	}
 
-	int existeix(int n, int d, int t, float p) {
+	template <class ... Args>
+	int existeix(int n, int d, int t, float p, Args ... args) {
 		cerr << "TEST Diccionari(" << n << ")->existeix" << endl;
 		cout << "\tTEST Diccionari(" << n << ")->existeix" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
@@ -63,7 +63,7 @@ namespace tests_diccionari {
 		
 		motorAleatori.llavor(time(NULL));
 		vdicc = genera_diccionari(d);
-		dicc = diccionari::factory(n, vdicc);
+		dicc = diccionari::factory(n, vdicc, args ...);
 		entrada = genera_text(d*t, p, vdicc);
 		
 		for (paraula par : entrada)
@@ -74,7 +74,8 @@ namespace tests_diccionari {
 		return 0;
 	}
 
-	int existeix_lot(int n, int d, int t, float p) {
+	template <class ... Args>
+	int existeix_lot(int n, int d, int t, float p, Args ... args) {
 		cerr << "TEST Diccionari(" << n << ")->existeix_lot" << endl;
 		cout << "\tTEST Diccionari(" << n << ")->existeix_lot" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
@@ -95,7 +96,7 @@ namespace tests_diccionari {
 		
 		motorAleatori.llavor(time(NULL));
 		vdicc = genera_diccionari(d);
-		dicc = diccionari::factory(n, vdicc);
+		dicc = diccionari::factory(n, vdicc, args ...);
 		entrada = genera_text(d*t, p, vdicc);
 		
 		trobats = dicc->existeix_lot(entrada);
@@ -108,7 +109,8 @@ namespace tests_diccionari {
 		return 0;
 	}
 	
-	int existeix_lot_ordenat(int n, int d, int t, float p) {
+	template <class ... Args>
+	int existeix_lot_ordenat(int n, int d, int t, float p, Args ... args) {
 		cerr << "TEST Diccionari(" << n << ")->existeix_lot_ordenat" << endl;
 		cout << "\tTEST Diccionari(" << n << ")->existeix_lot_ordenat" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
@@ -129,7 +131,7 @@ namespace tests_diccionari {
 		
 		motorAleatori.llavor(time(NULL));
 		vdicc = genera_diccionari(d);
-		dicc = diccionari::factory(n, vdicc);
+		dicc = diccionari::factory(n, vdicc, args ...);
 		entrada = genera_text(d*t, p, vdicc);
 		
 		trobats = dicc->existeix_lot_ordenat(entrada);
@@ -148,7 +150,8 @@ namespace tests_diccionari {
 		return i;
 	}
 	
-	int comparativa(int n, int d, int t, float p, bool print = false) {
+	template <class ... Args>
+	int comparativa(int n, int d, int t, float p, bool print, Args ... args) {
 		cerr << "COMPARATIVA Diccionari(" << n << ")" << endl;
 		cout << "\tCOMPARATIVA Diccionari(" << n << ")" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
@@ -171,7 +174,7 @@ namespace tests_diccionari {
 		
 		auto cr0 = crea_Cronometre(function<void(void)>(
 		[n, vdicc, &dicc](void) {
-				dicc = diccionari::factory(n, vdicc);
+				dicc = diccionari::factory(n, vdicc, args ...);
 			}
 		));
 		cr0();
@@ -264,7 +267,8 @@ namespace tests_diccionari {
 		return 0;
 	}
 
-	int print(int n, int d) {
+	template <class ... Args>
+	int print(int n, int d, Args ... args) {
 		cerr << "PRINT Diccionari(" << n << ")" << endl;
 		cout << "\tPRINT Diccionari(" << n << ")" << endl;
 		cout << "Tamany diccionari:\t" << d << endl;
@@ -306,18 +310,20 @@ namespace tests_utils {
 	}
 }
 
-int test_funcs(int type, int d, int t, float p) {
+template <class ... Args>
+int test_funcs(int type, int d, int t, float p, Args ... args) {
 	int i = -1;
 	
-	if (tests_diccionari::minitest(type) < 0) return i; --i;
-	if (tests_diccionari::existeix(type, d, t, p) < 0) return i; --i;
-	if (tests_diccionari::existeix_lot(type, d, t, p) < 0) return i; --i;
-	if (tests_diccionari::existeix_lot_ordenat(type, d, t, p) < 0) return i; --i;
+	if (tests_diccionari::minitest(type, args ...) < 0) return i; --i;
+	if (tests_diccionari::existeix(type, d, t, p, args ...) < 0) return i; --i;
+	if (tests_diccionari::existeix_lot(type, d, t, p, args ...) < 0) return i; --i;
+	if (tests_diccionari::existeix_lot_ordenat(type, d, t, p, args ...) < 0) return i; --i;
 	
 	return 0;
 }
 
-int metrics(int type, int d, int t, float p, bool print = false) {
+template <class ... Args>
+int metrics(int type, int d, int t, float p, bool print, Args ... args) {
 	int i = -1;
 	
 	if (tests_diccionari::comparativa(type, d, t, p, print) < 0) return i; --i;
@@ -325,7 +331,8 @@ int metrics(int type, int d, int t, float p, bool print = false) {
 	return 0;
 }
 
-int multimetrics(const vector<int>& types, const vector<int>& ds, const vector<int>& ts, const vector<float>& fs, bool print = false) {
+template <class ... Args>
+int multimetrics(const vector<int>& types, const vector<int>& ds, const vector<int>& ts, const vector<float>& fs, bool print, Args ... args) {
 	int i = -1;
 
 	for (int type : types)
@@ -355,7 +362,7 @@ int main(int argc, char** argv) {
 	if (
 		multimetrics(
 			{
-				//DictType::tCercaSequencial,
+				DictType::tCercaSequencial,
 				DictType::tSetFind,
 				DictType::tUSetFind,
 				DictType::tBST,
@@ -380,20 +387,6 @@ int main(int argc, char** argv) {
 	
 	// if (tests_utils::cronometre() < 0) return i; --i;
 	// if (tests_utils::disp_t    () < 0) return i; --i;
-	
-	int d = 5000;
-	int t = 2;
-	float p = 0.5f;
-
-	// tests_diccionari::comparativa(diccionari::tBST,d,t,p);
-	// tests_diccionari::comparativa(diccionari::Murmur,d,t,p);
-	// tests_diccionari::comparativa(diccionari::DJB2	,d,t,p);
-	// tests_diccionari::comparativa(diccionari::SHA	,d,t,p);
-	// tests_diccionari::comparativa(diccionari::MD5, d, t, p);
-	// tests_diccionari::comparativa(diccionari::xxHash, d, t, p);
-	// tests_diccionari::comparativa(diccionari::FNV, d, t, p);
-	// tests_diccionari::comparativa(diccionari::LinearProbbing, d, t, p);
-	// tests_diccionari::comparativa(diccionari::SeparateChaining, d, t, p);
 
 #ifdef _MSC_VER
 	cin.ignore();
