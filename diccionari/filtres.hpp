@@ -1,23 +1,22 @@
 #ifndef diccionari_filtres_hpp
 #define diccionari_filtres_hpp
 
-#include <vector>
+#include <cmath>
+#include <cstdint>
+//#include <cstdio>
+#include <cstring>
 #include <functional>
+#include <iomanip>
+#include <iostream>
 #include <iterator>
 #include <set>
-#include <unordered_set>
-#include <stdint.h>
-//#include <stdio.h>
-#include <string.h>
-#include <cmath>
-
 //#include <sstream>
-
-#include <iostream>
-#include <iomanip>
+#include <unordered_set>
+#include <vector>
 
 #include "diccionari.hpp"
 #include "MurmurHash3.hpp"
+
 using namespace std;
 
 namespace diccionari {
@@ -26,7 +25,7 @@ namespace diccionari {
 			std::vector<paraula> pars;
 			std::vector<bool> bits;
 			//int n;  //tamany del vector pars
-			float p = 0.001; // acceptable false positive rating (0.001 -> 0.1%)
+			float p = 0.001f; // acceptable false positive rating (0.001 -> 0.1%)
 			unsigned int n;   //numero de elementos
 			unsigned int k;   //numero de hash per paraula
 			unsigned int m;   //tamany del vector bits
