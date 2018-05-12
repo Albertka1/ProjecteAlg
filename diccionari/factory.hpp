@@ -12,7 +12,7 @@ namespace diccionari {
 		tCercaSequencial=1, tSetFind, tUSetFind, // contenidors_stl
 		tSimpleBloom, tCountingBloom, tQuotient, // filtres
 		tBST, tTreap, // search_tree
-		tMurmur, tSHA, tDJB2, tMD5, txxHash, tFNV, tLinearProbbing, tSeparateChaining // taules_hash
+		tMurmur, tSHA, tDJB2, tMD5, txxHash, tFNV, tLinearProbbing, tDoubleHashing, tSeparateChaining // taules_hash
 	};
 
 	template <class ... Args>
@@ -41,7 +41,8 @@ namespace diccionari {
 		case tMD5:				d = new HashTableMD5(pars, args ...); break;
 		case txxHash:			d = new HashTablexxHash(pars, args ...); break;
 		case tFNV:				d = new HashTableFNV(pars, args ...); break;
-		case tLinearProbbing:	d = new HashSet(pars, args ...); break;
+		case tLinearProbbing:	d = new HashSet(pars, 1); break;
+		case tDoubleHashing:	d = new HashSet(pars, 2); break;
 		case tSeparateChaining:	d = new HashSetSeparateChaining(pars, args ...); break;
 
 		default:				d = NULL;
