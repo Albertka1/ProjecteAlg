@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <functional>
+#include <string>
 
 namespace utils {
 	template <class R, class ... Args>
@@ -15,6 +16,16 @@ namespace utils {
 	public:
 		template<class span>
 		auto elapsed() const { return std::chrono::duration_cast<span>(fi - ini).count(); }
+		operator string() const {
+			if (elapsed<chrono::seconds>() > 100LL)
+				return std::to_string(elapsed<chrono::seconds>()) + " s";
+			if (elapsed<chrono::milliseconds>() > 100LL)
+				return std::to_string(elapsed<chrono::milliseconds>()) + " ms";
+			if (elapsed<chrono::microseconds>() > 100LL)
+				return std::to_string(elapsed<chrono::microseconds>()) + " ys";
+			else
+				return std::to_string(elapsed<chrono::nanoseconds>()) + " ns";
+		}
 	};
 
 	template <class R, class ... Args>
