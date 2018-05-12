@@ -414,6 +414,8 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 	});
 	c_crea();
 
+	if (dicc == NULL) return -1;
+
 	cout << "CREACIO" << endl;
 	cout << "temps: " << c_crea << endl;
 	cout << "n comps: " << dicc->count_comps() << endl;
@@ -438,6 +440,8 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 		vdicc = genera_diccionari(d);
 		vtext = genera_text(dt, p, vdicc);
 		dicc = factory(type, vdicc, args ...);
+
+		if (dicc == NULL) return -2;
 		
 		auto c_lot = Cronometre<void>([&troba, dicc, &vtext]() {
 			troba = dicc->existeix_lot(vtext);
@@ -455,6 +459,8 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 		vdicc = genera_diccionari(d);
 		vtext = genera_text(dt, p, vdicc);
 		dicc = factory(type, vdicc, args ...);
+
+		if (dicc == NULL) return -3;
 		
 		auto c_ord = Cronometre<void>([&troba, dicc, vtext]() {
 			troba = dicc->existeix_lot_ordenat(vtext);
@@ -466,6 +472,8 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 		cout << "n comps: " << dicc->count_comps() << endl;
 		cout << endl;
 	}
+
+	return 0;
 }
 
 int main(int argc, char** argv){
