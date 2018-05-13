@@ -431,7 +431,7 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 	c_seq();
 
 	cout << "CERCA SEQ" << endl;
-	cout << "temps: " << c_seq << endl;
+	cout << "temps: " << to_string(c_seq) << endl;
 	cout << "n comps: " << dicc->count_comps() << endl;
 	cout << endl;
 
@@ -449,7 +449,7 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 		c_lot();
 
 		cout << "CERCA LOT" << endl;
-		cout << "temps: " << c_lot << endl;
+		cout << "temps: " << to_string(c_lot) << endl;
 		cout << "n comps: " << dicc->count_comps() << endl;
 		cout << endl;
 	}
@@ -468,7 +468,7 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 		c_ord();
 
 		cout << "CERCA ORD" << endl;
-		cout << "temps: " << c_ord << endl;
+		cout << "temps: " << to_string(c_ord) << endl;
 		cout << "n comps: " << dicc->count_comps() << endl;
 		cout << endl;
 	}
@@ -477,6 +477,10 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 }
 
 int main(int argc, char** argv){
-	prova();
+	//prova();
 	//analitza(...);
+
+	int type = DictType::tBST;
+	for (int d : {10000, 100000}) for (int t : {10, 100}) for (float p : {0.005f, 0.01f, 0.02f, 0.05f, 0.1f})
+		for (int i = 0; i < 10; i++) analitza(type, d, t, p);
 }
