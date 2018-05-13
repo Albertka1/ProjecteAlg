@@ -31,21 +31,17 @@ namespace diccionari {
 	template <class Comp>
 	comp_count<Comp> make_comparator_counter(Comp c) { return comp_count<Comp>(c); }
 	
-	template <class T>
-	bool equals(const T& a, const T& b) { return a == b; }
-	template <class T>
-	bool less(const T& a, const T& b) { return a == b; }
-	
 	class Diccionari {
 	protected:
 		Diccionari() {}
+		
 		template<class cont>
-		#define macro_stringCast operator std::string() const { return Diccionari::toString(pars); } // pars es un contenidor iterable
 		static std::string toString(const cont& c) {
 			std::string s = "";
 			for (paraula p : c) s += std::to_string(p) + '\n';
 			return s;
 		}
+		#define macro_stringCast operator std::string() const { return Diccionari::toString(pars); } // pars es un contenidor iterable
 		
 	public:
 		virtual operator std::string() const = 0;

@@ -13,8 +13,7 @@ namespace diccionari {
         
 	struct {
 	private:
-		std::uniform_int_distribution<paraula> paraules = std::uniform_int_distribution<paraula>(0, PARAULA_MAX - 1);
-		std::uniform_int_distribution<int> percentatge = std::uniform_int_distribution<int>(0, 99);
+		std::uniform_int_distribution<paraula> paraules = std::uniform_int_distribution<paraula>(PARAULA_MIN, PARAULA_MAX - 1);
 		std::default_random_engine gen = std::default_random_engine();
 
 	public:
