@@ -7,8 +7,11 @@
 #include <set>
 #include <unordered_set>
 #include <stdint.h>
+//#include <stdio.h>
 #include <string.h>
 #include <cmath>
+
+//#include <sstream>
 
 #include <iostream>
 #include <iomanip>
@@ -23,7 +26,7 @@ namespace diccionari {
 			std::vector<paraula> pars;
 			std::vector<bool> bits;
 			//int n;  //tamany del vector pars
-			float p = 0.001; // acceptable false positive rating (0.001 -> 0.1%)  [RATIOS MES BAIXOS AUMENTEN EL TEMPS D'EXECUCIÓ]
+			float p = 0.001; // acceptable false positive rating (0.001 -> 0.1%)
 			unsigned int n;   //numero de elementos
 			unsigned int k;   //numero de hash per paraula
 			unsigned int m;   //tamany del vector bits
@@ -69,11 +72,10 @@ namespace diccionari {
 				pars = std::vector<paraula>(v);
 				n = v.size();
 				m = round(-(n*log(p)) / (log(2)*log(2)));  //m > k*n 
-				k = round(m/n*log(2));
+				k = ceil(m/n*log(2));
 				cout << "el numero N es: " << n << endl << endl;
 				cout << "el numero M es: " << m << endl << endl;
 				cout << "el numero K es: " << k << endl << endl;
-				cout << "la probabilitat de fals positiu es : " << p*100 << "%" << endl << endl;	
 				setFalses();
 				for (int i = 0; i < k; i++) Simple(v, i);
 			}
@@ -183,7 +185,7 @@ namespace diccionari {
 			std::vector<paraula> pars;
 			std::vector<quotient_slot> quotient;
 			unsigned int m;   //tamany del hash table
-			unsigned int p = 32;  //fingersprint size
+			unsigned int p = 16;  //fingersprint size
 			unsigned int r;  //least significants bits 
 
 			
@@ -223,13 +225,19 @@ namespace diccionari {
 				bool inserted = false;
 				int cluster_num = 0;
 				while (!inserted) {
+					cout << "ESTO ES " << i << endl;
+					cout << "THIS SLOT: " << quotient[i].fr << endl;
+					cout << "MY REMAINDER: " << remainder << endl;
+					
 					if (!quotient[i].is_occupied and !quotient[i].is_continuation and !quotient[i].is_shifted) { //insert directe al final (cua del run)
+						cout << "DIRECT INSERT" << endl;
 						inserted = true;
 						quotient[i].fr = remainder;
 						quotient[i].is_continuation= true;
 						quotient[i].is_shifted = true;
 					}
 					else if (quotient[i].fr > remainder) { //encontramos su posicion y insertamos desplazando los demas
+						cout << "INSERTAMOS" << endl;
 						inserted = true;
 						bool was_first = false;
 						bool all_shifted = false;
@@ -238,19 +246,27 @@ namespace diccionari {
 						if (aux.is_occupied) was_first = true;  
 						i++;
 						while (!all_shifted) {
+							cout << "SHIFTAMOS A " << i << endl;
 							quotient_slot aux2 = quotient[i];
 							quotient[i].fr = aux.fr;
 							if ((!aux2.is_occupied and !aux2.is_continuation and !aux2.is_shifted) or (i == m)) all_shifted = true;
 							if (was_first) {
+								cout << "WAS FIRST" << endl;
 								quotient[i].is_continuation = true;
 								was_first = false;
 							}
 							quotient[i].is_shifted = true;
+							cout << "fr :" << quotient[i].fr << endl;
+							cout << "occ:" << quotient[i].is_occupied << endl;
+							cout << "con:" << quotient[i].is_continuation << endl;
+							cout << "shi:" << quotient[i].is_shifted << endl;
+							cout << endl;
 							aux = aux2;
 							i++;
 						}
 					}
 					else if (cluster_num == 1 and !quotient[i].is_continuation) {//fin de cluster, insertamos al final y desplazamos si hace falta
+						cout << "FIN DE CLUSTER" << endl;
 						inserted = true;
 						bool all_shifted = false;	
 						quotient_slot aux = quotient[i];
@@ -259,6 +275,7 @@ namespace diccionari {
 						quotient[i].is_shifted = true;
 						i++;
 						while (!all_shifted) {
+							cout << "SHIFTAMOS2 A " << i << endl;
 							quotient_slot aux2 = quotient[i];
 							quotient[i].fr = aux.fr;
 							if ((!aux2.is_occupied and !aux2.is_continuation and !aux2.is_shifted) or (i == m)) all_shifted = true;
@@ -269,6 +286,7 @@ namespace diccionari {
 					}
 					++i;
 					cluster_num = 1;
+					cout << endl;
 					
 				}
 			}
@@ -277,6 +295,10 @@ namespace diccionari {
 				int mod = (int)pow(2.0, r);
 				unsigned long remainder = f % mod; //fr
 				unsigned long qindex = floor(f / mod); //fq
+				
+				cout << "mod es: " << mod << endl;
+				cout << "remainder es: " << remainder << endl;
+				cout << "qindex es: " << qindex << endl << endl;
 				
 				quotient_slot canonical = quotient[qindex];
 				
@@ -291,6 +313,7 @@ namespace diccionari {
 					bool inserted = false;
 					++qindex;
 					while (!inserted and qindex < m) {
+						cout << "INDEX Q " << qindex << endl;
 						if (!quotient[qindex].is_continuation) {
 							inserted = true;
 							quotient[qindex].is_shifted = true;
@@ -313,7 +336,7 @@ namespace diccionari {
 			Quotient(const std::vector<paraula>& v) : Diccionari() {
 				//unsigned int q = p-r;
 				unsigned int n = v.size();
-				unsigned int q = log2(n)+2;
+				unsigned int q = log2(n)+1;
 				r = p-q;
 				pars = std::vector<paraula>(v);
 				m = (unsigned int)pow(2.0,q);
@@ -325,36 +348,57 @@ namespace diccionari {
 				cout << "el numero M es: " << m << endl << endl;
 				
 				quotient = vector<quotient_slot>(m);
-
+				
+				cout << endl << endl;
 				for (paraula p1: v) {
 					unsigned long f = Murmur_hash(p1);
+					cout << "la palabra '" << p1 << "' tiene como valor hash: " << f << endl;
 					add_element(f);
+					cout << endl;
+				}
+				
+				for (int i = 0; i < m; i++) {
+					cout << "Slot " << i << endl; 
+					cout << "Remainder " << quotient[i].fr << endl; 
+					cout << "Is_occupied: " << quotient[i].is_occupied << endl;
+					cout << "Is_continuation: " << quotient[i].is_continuation << endl;
+					cout << "Is_shifted: " << quotient[i].is_shifted << endl << endl;
 				}
 				
 			}
 			
 			macro_stringCast
 			bool existeix(paraula p) const{
+				cout << endl;
+				cout << "Searching paraula " << p << endl;
 				bool conte = false;
 				unsigned long f = Murmur_hash(p);
 				int mod = (int)pow(2.0, r);
 				unsigned long remainder = f % mod; //fr
 				unsigned long qindex = floor(f / mod); //fq
-
+				
+				cout << "remainder es: " << remainder << endl;
+				cout << "qindex es: " << qindex << endl;
 				
 				if (quotient[qindex].is_occupied) {
 					if (quotient[qindex].fr == remainder) conte = true;
 					else {
 						qindex++;
+						cout << "SOFT COLLISION" << endl;
 						while (quotient[qindex].is_shifted and qindex < m) {
+							cout << "qindex(soft) es: " << qindex << endl;
+							cout << "remainder(soft) es: " << remainder << endl;
 							if (quotient[qindex].fr == remainder){
 								conte = true;
 								break;
 							}
-							qindex++;
 						}
 					}
 				}
+				else {
+					cout << "ELEMENTO NO ESTA" << endl;
+				}
+				cout << endl;
                 return conte;
             }
 	};
