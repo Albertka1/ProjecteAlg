@@ -417,7 +417,7 @@ int analitza(int type, int d, int t, float p, Args ... args) {
 	if (dicc == NULL) return -1;
 
 	cout << "CREACIO" << endl;
-	cout << "temps: " << c_crea << endl;
+	cout << "temps: " << to_string(c_crea) << endl;
 	cout << "n comps: " << dicc->count_comps() << endl;
 	cout << "load: " << dicc->getLoadFactor() << endl;
 	cout << endl;
